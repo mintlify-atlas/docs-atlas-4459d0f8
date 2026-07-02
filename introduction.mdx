@@ -1,0 +1,64 @@
+---
+title: "Compose Svelted: Jetpack Compose for the Web"
+sidebarTitle: "Introduction"
+description: "Compose Svelted brings Jetpack Compose's mental model to Svelte 5 — explicit layouts, immutable modifiers, declarative motion, and navigation as state."
+---
+
+Compose Svelted is an experimental UI framework for Svelte 5 that ports the **Jetpack Compose mental model** to the web. It is not a Material Design clone, and it is not a thin component wrapper. It is a principled approach to building UIs where layout, motion, and navigation are all **explicit, predictable, and composable** — with no virtual DOM abstractions, no hidden magic, and no global side effects you cannot reason about.
+
+## Core Philosophy
+
+> UI is a function of state. Layout, motion, and navigation must be explicit and predictable.
+
+Compose Svelted is built around four core ideas that distinguish it from conventional web UI libraries:
+
+- **Explicit composition** — every element of a UI is intentionally placed. There is no implicit flow, no automatic spacing, and no default behavior that surprises you in production.
+- **Predictable layout** — layout components like `Column`, `Row`, and `Box` behave consistently across browsers because they rely on a minimal, contract-based CSS baseline rather than browser defaults.
+- **Declarative motion** — animations are not applied as CSS afterthoughts. Motion is structural: `AnimatedVisibility` and `AnimatedContent` are layout-aware components, not style helpers.
+- **Navigation as state** — routing is not a URL concern. A `NavController` manages a backstack of destinations as reactive state, and `NavHost` renders the current destination declaratively.
+
+## Library Structure
+
+Compose Svelted is organized into versioned capability tiers, each building on the last.
+
+### Core V1 — Layout & Styling
+
+The stable foundation of the library. Includes all layout primitives (`Column`, `Row`, `Box`, `Scaffold`, `LazyColumn`, `LazyRow`), the immutable `Modifier` chain, the `ComposeTheme` provider, `Surface`, `Text`, `Button` variants, `Card` variants, `TextField` variants, and the full typography and shape system.
+
+### Core V2 — Motion & Navigation (CLOSED)
+
+The motion and navigation layer, currently closed to further feature additions while it stabilizes. Provides `AnimatedVisibility`, `AnimatedContent`, `NavController`, `NavHost`, and the internal backstack implementation. The API is usable today but is not yet considered stable.
+
+### Core V3 — Planned
+
+The next tier is in the roadmap and will introduce nested navigation, directional transitions (screen-level enter/exit with directionality), and shared element transitions between destinations.
+
+## Strengths
+
+<CardGroup cols={2}>
+  <Card title="Explicit Layout" icon="layout-panel-left">
+    Layout is never inferred. `Column`, `Row`, and `Box` give every child a deterministic position. Alignment and arrangement are always opt-in props, never ambient defaults.
+  </Card>
+  <Card title="Immutable Modifiers" icon="link-2">
+    The `Modifier` API is a chainable, immutable descriptor. `Modifier.padding(16).fillMaxWidth().clip(RoundedCornerShape(12))` describes intent in pure TypeScript — it never mutates shared state or fights with a stylesheet.
+  </Card>
+  <Card title="Structural Motion" icon="sparkles">
+    `AnimatedVisibility` and `AnimatedContent` are first-class layout participants. Enter and exit transitions are defined alongside the component structure, not scattered across CSS keyframe files.
+  </Card>
+  <Card title="Compose-like Navigation" icon="map">
+    `NavController` and `NavHost` bring Jetpack Compose's navigation model to the web. Push destinations onto a backstack, pop back, and let `NavHost` render the current route — no external router required.
+  </Card>
+</CardGroup>
+
+## Alpha Status
+
+<Note>
+  Compose Svelted is currently in **alpha** (v0.2.x). The Core V1 API is the most stable surface. Core V2 (motion and navigation) is functional but the API may change before a stable release. Core V3 is not yet available. Use it in production at your own discretion, and expect occasional breaking changes between minor versions.
+</Note>
+
+## Project Zones
+
+If you are contributing to or developing against the library source, the repository is split into two zones:
+
+- **`src/lib`** — the publishable library source. Everything exported from here is what consumers of `@danielito1996/compose-svelted` receive.
+- **`playground`** — a local Svelte app used for developing and validating library components against live source. The playground aliases `@danielito1996/compose-svelted` directly to `src/lib/index.ts`, so changes to the library source are reflected instantly without a build step.

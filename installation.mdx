@@ -1,0 +1,122 @@
+---
+title: "Install Compose Svelted in Your Svelte 5 Project"
+sidebarTitle: "Installation"
+description: "Add Compose Svelted to a Svelte 5 project, apply the required CSS baseline, and configure your app for layout-deterministic rendering."
+---
+
+Getting Compose Svelted into your project takes three steps: install the package, apply the CSS baseline, and wrap your app tree. This page covers the first two in full detail. The CSS baseline step is mandatory — skip it and layout components will behave unpredictably across browsers.
+
+## Prerequisites
+
+Compose Svelted targets **Svelte 5** exclusively. It uses Svelte 5 runes and the slot API internally and will not function correctly with Svelte 4 or earlier. Ensure your project satisfies the peer dependency before installing:
+
+```json
+"peerDependencies": {
+  "svelte": "^5.0.0"
+}
+```
+
+## Install the Package
+
+<CodeGroup>
+
+```bash npm
+npm install @danielito1996/compose-svelted
+```
+
+```bash yarn
+yarn add @danielito1996/compose-svelted
+```
+
+```bash pnpm
+pnpm add @danielito1996/compose-svelted
+```
+
+</CodeGroup>
+
+## CSS Baseline (Required)
+
+<Warning>
+  The CSS baseline is **required**. Without it, layout components such as `Column`, `Row`, `Box`, `Surface`, `Scaffold`, and all navigation containers may render with inconsistent sizing, unexpected scroll, or misaligned children depending on the browser and existing stylesheet.
+</Warning>
+
+Compose Svelted is **layout-deterministic**. It does not inject global CSS silently, does not assume browser defaults, and does not impose any styling on your app. Instead, it expects the host application to establish a minimal, explicit layout contract — exactly as Jetpack Compose requires a `setContent` root and a composable tree rather than relying on Android view defaults.
+
+Choose one of the two paths below.
+
+### Path A — Import from the Package (Recommended)
+
+The easiest approach is to import one of the two bundled baselines in your app's entry point (typically `src/main.ts` or `src/app.ts`):
+
+**Option 1 — Strict baseline** (`baseline.css`)
+
+Applies the full Compose-like contract: `box-sizing: border-box` universally, `html/body/#app` locked to 100% viewport size with `overflow: hidden`, and internal utility classes used by layout components. This is the correct choice for greenfield Svelte 5 apps built entirely with Compose Svelted.
+
+```ts
+import "@danielito1996/compose-svelted/baseline.css";
+```
+
+**Option 2 — Safe baseline** (`baseline-safe.css`)
+
+Applies only the minimum required contract: `box-sizing: border-box` and `html/body/#app` at 100% size, without forcing `overflow: hidden` globally or adding media normalization. Use this if your app already has strong global styles and you want minimal interference.
+
+```ts
+import "@danielito1996/compose-svelted/baseline-safe.css";
+```
+
+### Path B — Manual CSS in `app.css`
+
+If you prefer full control over your stylesheet and do not want to import the bundled baseline, ensure your global CSS includes at minimum:
+
+```css
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+```
+
+<Tip>
+  If you use the strict `baseline.css` and your root element ID is not `#app`, add a matching rule for your actual root ID (e.g. `#root`) to ensure `height: 100%` propagates correctly to `AppRoot`.
+</Tip>
+
+### Why the Baseline Matters
+
+Without a layout contract, browsers apply their own defaults: `body` margins, percentage heights that collapse when the parent has no explicit height, `box-sizing: content-box` that causes padding to overflow declared widths. Compose Svelted's layout components are designed on the assumption that none of these defaults exist — just like Jetpack Compose assumes the Android framework has already established the rendering surface. The baseline is how you establish that surface on the web.
+
+## Tailwind CSS
+
+<Note>
+  Compose Svelted **does not require Tailwind CSS**. Tailwind is used internally as an implementation detail for predictable, scoped styling within the library's own components. Consumers of the library do not need to install, configure, or know about Tailwind at all.
+</Note>
+
+## Project Structure Tip
+
+After installation, a minimal Compose Svelted project typically looks like this:
+
+```
+src/
+├── main.ts          ← import baseline CSS here
+├── App.svelte       ← ComposeTheme + AppRoot live here
+└── screens/
+    └── HomeScreen.svelte
+```
+
+Import the baseline at the very top of `main.ts`, before any other imports, to ensure it is applied before Svelte mounts the component tree:
+
+```ts
+import "@danielito1996/compose-svelted/baseline.css";
+import App from "./App.svelte";
+import { mount } from "svelte";
+
+mount(App, { target: document.getElementById("app")! });
+```

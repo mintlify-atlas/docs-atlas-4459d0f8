@@ -1,0 +1,353 @@
+---
+title: "The Modifier System: Immutable, Chainable Styling"
+sidebarTitle: "Modifier"
+description: "Learn how Compose Svelted's immutable, chainable Modifier API applies sizing, spacing, appearance, and interaction styles to any component."
+---
+
+The `Modifier` object is the single entry point for decorating any Compose Svelted component. Inspired directly by Jetpack Compose, every method on a `Modifier` returns a **brand-new** `ModifierImpl` instance — the original is never mutated. This immutability makes modifiers safe to share, compose, and reuse across your component tree without unexpected side effects.
+
+## Creating a Modifier
+
+Start a modifier chain with `Modifier.empty()` or any of the static factory methods. Both approaches create a fresh `ModifierImpl` internally:
+
+```ts
+import { Modifier } from "@danielito1996/compose-svelted";
+
+// Start from empty, then chain methods
+const mod = Modifier.empty().padding(16).fillMaxWidth();
+
+// Or use a factory method directly — equivalent to Modifier.empty().padding(16)
+const mod2 = Modifier.padding(16);
+```
+
+Every static method on `Modifier` is a shorthand factory that constructs `new ModifierImpl()` and immediately calls the same method on it. Use whichever form reads most naturally in context.
+
+## Chaining Example
+
+All methods return a new `ModifierImpl`, so you can build up arbitrarily complex style descriptions in a single expression:
+
+```ts
+import { Modifier, RoundedCornerShape } from "@danielito1996/compose-svelted";
+
+const cardModifier = Modifier
+  .fillMaxWidth()
+  .padding(16)
+  .background("primary")
+  .clip(RoundedCornerShape(12))
+  .clickable(() => console.log("clicked"));
+```
+
+The chain reads like a declarative description of the component's appearance and is fully type-safe — each method accepts only the correct parameter types.
+
+## Immutability in Practice
+
+Because each call returns a **new** instance, the original modifier is never changed:
+
+```ts
+const base = Modifier.padding(16);
+const withBg = base.background("#FF732F");  // new instance
+const withBorder = base.border(1, "#ccc"); // another new instance — base is unchanged
+
+// base, withBg, and withBorder are three independent ModifierImpl objects
+```
+
+This mirrors the behavior of `Modifier` in Jetpack Compose and makes it trivially safe to derive specialised modifiers from a shared base.
+
+---
+
+## `.then()` — Composing Two Modifiers
+
+`then()` merges two `ModifierImpl` instances by concatenating their internal style entries:
+
+```ts
+then(other: ModifierImpl): ModifierImpl
+```
+
+```ts
+const spacing = Modifier.padding(16).paddingHorizontal(8);
+const visual  = Modifier.background("#fff").border(1, "#eee");
+
+const combined = spacing.then(visual);
+// Equivalent to: Modifier.padding(16).paddingHorizontal(8).background("#fff").border(1, "#eee")
+```
+
+---
+
+## Method Reference
+
+### Sizing
+
+<ParamField path="width(value, unit?)" type="(value: number | string, unit?: string) => ModifierImpl">
+  Sets an explicit CSS `width`. The `unit` defaults to `"px"` when `value` is a number. Pass a string such as `"50%"` or `"10rem"` to use a different unit inline.
+</ParamField>
+
+```ts
+Modifier.width(200)          // width: 200px
+Modifier.width(50, "%")      // width: 50%
+Modifier.width("fit-content") // width: fit-content
+```
+
+<ParamField path="height(value, unit?)" type="(value: number | string, unit?: string) => ModifierImpl">
+  Sets an explicit CSS `height` using the same rules as `width()`.
+</ParamField>
+
+```ts
+Modifier.height(120)
+Modifier.height(100, "%")
+```
+
+<ParamField path="size(value, unit?)" type="(value: number | string, unit?: string) => ModifierImpl">
+  Sets both `width` and `height` to the same value — a convenient shorthand for square elements.
+</ParamField>
+
+```ts
+Modifier.size(48)   // width: 48px; height: 48px
+```
+
+<ParamField path="fillMaxWidth()" type="() => ModifierImpl">
+  Applies `width: 100%; align-self: stretch` so the component expands to fill its parent's width in a flex container.
+</ParamField>
+
+<ParamField path="fillMaxHeight()" type="() => ModifierImpl">
+  Applies `height: 100%; align-self: stretch` so the component expands to fill its parent's height.
+</ParamField>
+
+<ParamField path="fillMaxSize()" type="() => ModifierImpl">
+  Shorthand for `fillMaxWidth()` + `fillMaxHeight()` — applies `width: 100%; height: 100%; align-self: stretch`.
+</ParamField>
+
+---
+
+### Layout
+
+<ParamField path="weight(weight, fill?)" type="(weight: number, fill?: boolean) => ModifierImpl">
+  Distributes available space among siblings using `flex-grow`. When `fill` is `true` (default), `flex-shrink` is also set to 1 so the item can compress. Values ≤ 0 are ignored.
+</ParamField>
+
+```ts
+// Two children that share space 1:2
+Modifier.weight(1)
+Modifier.weight(2)
+```
+
+<ParamField path="weightNoFill(weight)" type="(weight: number) => ModifierImpl">
+  Equivalent to `weight(weight, false)` — the item grows but does not shrink below its natural size.
+</ParamField>
+
+<ParamField path="align(alignment)" type="(alignment: BoxAlignment | HorizontalAlignment | VerticalAlignment) => ModifierImpl">
+  Overrides the individual alignment of a child within its parent container. Accepts any of the branded `Alignment` tokens. See [Alignment & Arrangement](/concepts/alignment-arrangement) for the full token list.
+</ParamField>
+
+```ts
+import { Modifier, Alignment } from "@danielito1996/compose-svelted";
+
+// Centre a single child inside a Column
+Modifier.align(Alignment.CenterHorizontally)
+```
+
+---
+
+### Spacing
+
+<ParamField path="padding(valueOrParams, unit?)" type="(valueOrParams: number | { top?, bottom?, start?, end? }, unit?: string) => ModifierImpl">
+  Applies padding. Pass a single number for uniform padding on all sides, or an object for per-side control. Side names follow the logical properties convention (`start` = left, `end` = right).
+</ParamField>
+
+```ts
+Modifier.padding(16)                              // padding: 16px (all sides)
+Modifier.padding({ top: 8, bottom: 8, start: 16, end: 16 })
+Modifier.padding(8, "rem")                        // padding: 8rem
+```
+
+<ParamField path="paddingHorizontal(value)" type="(value: number) => ModifierImpl">
+  Applies equal padding to the left and right sides only.
+</ParamField>
+
+```ts
+Modifier.paddingHorizontal(24)  // padding-left: 24px; padding-right: 24px
+```
+
+<ParamField path="paddingVertical(value)" type="(value: number) => ModifierImpl">
+  Applies equal padding to the top and bottom sides only.
+</ParamField>
+
+```ts
+Modifier.paddingVertical(12)  // padding-top: 12px; padding-bottom: 12px
+```
+
+<ParamField path="marginTop(value, unit?)" type="(value: number, unit?: string) => ModifierImpl">
+  Applies a top margin. Useful for adding space above a specific child without affecting sibling spacing.
+</ParamField>
+
+```ts
+Modifier.marginTop(8)
+Modifier.marginTop(1, "rem")
+```
+
+---
+
+### Appearance
+
+<ParamField path="background(color)" type="(color: ColorToken | string) => ModifierImpl">
+  Sets the CSS `background`. Accepts either a `ColorToken` key (resolved to the corresponding CSS variable at runtime) or any raw CSS colour string.
+</ParamField>
+
+```ts
+import { Modifier, ColorScheme } from "@danielito1996/compose-svelted";
+
+Modifier.background(ColorScheme.Primary)   // resolves to var(--md-sys-color-primary)
+Modifier.background("#FF732F")             // raw hex
+Modifier.background("rgba(0,0,0,0.1)")    // raw rgba
+```
+
+<ParamField path="border(width, color, shape?)" type="(width: number, color: string, shape?: Shape) => ModifierImpl">
+  Draws a solid border. If `width` is ≤ 0 the method is a no-op. An optional `Shape` applies a matching `border-radius`.
+</ParamField>
+
+```ts
+Modifier.border(1, "#ccc")
+Modifier.border(2, "#FF732F", RoundedCornerShape(8))
+```
+
+<ParamField path="clip(shape)" type="(shape: Shape) => ModifierImpl">
+  Clips the component to the given shape by applying `border-radius` and `overflow: hidden`. Use this instead of `border()` when you only want the shape without a visible stroke.
+</ParamField>
+
+```ts
+Modifier.clip(RoundedCornerShape(16))
+```
+
+<ParamField path="offset(x, y)" type="(x: number, y: number) => ModifierImpl">
+  Translates the element using `transform: translate(xpx, ypx)` without affecting layout flow.
+</ParamField>
+
+```ts
+Modifier.offset(0, -4)   // shift 4px upward
+```
+
+---
+
+### Interaction
+
+<ParamField path="clickable(onClick?)" type="(onClick?: () => void) => ModifierImpl">
+  Marks the element as interactive by adding the `compose-clickable` CSS class and setting `cursor: pointer; user-select: none`. Pass a callback to handle click events.
+</ParamField>
+
+```ts
+Modifier.clickable(() => console.log("tapped"))
+```
+
+<Note>
+  The click handler is stored in the modifier's metadata and wired up by the receiving component. The `cursor` and `user-select` styles are always applied regardless of whether a callback is provided.
+</Note>
+
+---
+
+### Scroll
+
+<ParamField path="verticalScroll(enabled?)" type="(enabled?: boolean) => ModifierImpl">
+  Enables vertical scrolling by applying `overflow-y: auto`. Pass `false` to disable (no-op — the modifier is returned unchanged).
+</ParamField>
+
+```ts
+Modifier.fillMaxHeight().verticalScroll()
+```
+
+<ParamField path="horizontalScroll(enabled?)" type="(enabled?: boolean) => ModifierImpl">
+  Enables horizontal scrolling by applying `overflow-x: auto`.
+</ParamField>
+
+```ts
+Modifier.fillMaxWidth().horizontalScroll()
+```
+
+---
+
+## `toStyle()` — Serialising to Inline CSS
+
+After building a modifier chain, `toStyle()` collapses all accumulated style entries into a single inline-style string ready to be applied to a DOM element:
+
+```ts
+toStyle(): string
+```
+
+```ts
+const mod = Modifier.padding(16).background("#fff").fillMaxWidth();
+console.log(mod.toStyle());
+// "padding:16px;background:#fff;width:100%;align-self:stretch;"
+```
+
+When the modifier contains an `.align()` entry, `toStyle()` additionally resolves the branded alignment token to the appropriate `align-self` or `place-self` CSS property.
+
+```ts
+toClass(): string   // Returns any CSS class names (e.g. "compose-clickable")
+getMeta(): ModifierMeta  // Returns alignment and other metadata entries
+```
+
+---
+
+## RoundedCornerShape
+
+`RoundedCornerShape` is the primary `Shape` factory. It implements the `Shape` interface (`toCssBorderRadius(): string`) and is used with both `clip()` and `border()`.
+
+```ts
+export interface Shape {
+  toCssBorderRadius(): string;
+}
+```
+
+### Uniform Radius
+
+Pass a single `number` (pixels) or `string` to apply the same radius to all four corners:
+
+```ts
+import { RoundedCornerShape } from "@danielito1996/compose-svelted";
+
+RoundedCornerShape(16)      // "16px 16px 16px 16px"
+RoundedCornerShape("50%")   // "50% 50% 50% 50%" — circle on a square element
+RoundedCornerShape(0)       // sharp corners
+```
+
+### Per-Corner Radius
+
+Pass an object with any subset of `topStart`, `topEnd`, `bottomEnd`, `bottomStart` to control each corner independently. Omitted corners default to `0px`:
+
+```ts
+// Pill-shaped top, sharp bottom — e.g. a bottom sheet header
+RoundedCornerShape({ topStart: 16, topEnd: 16, bottomEnd: 0, bottomStart: 0 })
+
+// Only the top-right corner rounded
+RoundedCornerShape({ topEnd: 8 })
+```
+
+<Tip>
+  Corner names follow the logical-properties convention used in Jetpack Compose: `topStart` = top-left (LTR), `topEnd` = top-right (LTR), `bottomEnd` = bottom-right (LTR), `bottomStart` = bottom-left (LTR).
+</Tip>
+
+The CSS output maps to the standard `border-radius` shorthand in `top-left top-right bottom-right bottom-left` order.
+
+---
+
+## Full Chaining Example
+
+The following modifier describes a full-width card with padding, a themed background, rounded corners, and a click handler:
+
+```ts
+import { Modifier, RoundedCornerShape, ColorScheme } from "@danielito1996/compose-svelted";
+
+const cardModifier = Modifier
+  .fillMaxWidth()
+  .padding(16)
+  .background(ColorScheme.Surface)
+  .border(1, "var(--md-sys-color-outline)")
+  .clip(RoundedCornerShape(12))
+  .clickable(() => console.log("card clicked"));
+```
+
+Pass it to any component via the `modifier` prop:
+
+```svelte
+<Box modifier={cardModifier}>
+  <Text>Hello from Compose Svelted</Text>
+</Box>
+```

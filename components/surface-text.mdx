@@ -1,0 +1,132 @@
+---
+title: "Surface and Text: Material 3 Base Components"
+sidebarTitle: "Surface & Text"
+description: "Learn how Surface and Text implement Material 3's base container and typography system in Compose Svelted using theme color and text style tokens."
+---
+
+`Surface` and `Text` are the two foundational primitives that every other UI component in Compose Svelted builds on. `Surface` provides a themed background container drawn from the Material 3 color scheme, while `Text` renders styled typography using the Material 3 type scale. Using these two together correctly ensures your UI automatically responds to light and dark theme changes without any extra wiring.
+
+## Surface
+
+`Surface` is the base Material 3 container. It renders a `div` whose background color is resolved from the active theme's `ColorScheme`. Every higher-level component in Compose Svelted — `Card`, `TextField`, `Button` — is ultimately drawn on top of a `Surface`.
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` applied to the container. Use it to set sizing, padding, shape clipping, or any other layout and visual properties.
+</ParamField>
+
+<ParamField path="color" type="ColorToken" default="surface">
+  The background color of the surface, resolved from the active `ColorScheme`. Must be one of the named color tokens: `primary`, `onPrimary`, `secondary`, `onSecondary`, `background`, `onBackground`, `surface`, `onSurface`, `surfaceVariant`, `onSurfaceVariant`, `tertiary`, `onTertiary`, `outline`, `error`, or `onError`.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { Surface, Text, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<!-- Default surface — uses the "surface" color token -->
+<Surface modifier={Modifier.fillMaxWidth().padding(16)}>
+  <Text>Content on a themed surface</Text>
+</Surface>
+
+<!-- Primary-toned surface -->
+<Surface color="primary" modifier={Modifier.fillMaxWidth().padding(24)}>
+  <Text color="onPrimary" textStyle="titleMedium">Primary surface area</Text>
+</Surface>
+
+<!-- Error surface -->
+<Surface color="error" modifier={Modifier.padding(12)}>
+  <Text color="onError" textStyle="labelLarge">Something went wrong</Text>
+</Surface>
+```
+
+<Note>
+  `Surface` has no built-in elevation or shape — it is a flat color container. For raised or clipped surfaces, wrap its content in a `Card` or apply `Modifier.clip(RoundedCornerShape(n))` to the modifier.
+</Note>
+
+---
+
+## Text
+
+`Text` is the Material 3 typography component. It renders a `<p>` element whose font properties are fully driven by the active theme's typography scale. You control which scale step to use via the `textStyle` token, and you can optionally override the color using either a theme token or a direct CSS color string.
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` applied to the paragraph element. Useful for setting max-width, text-align via `Modifier.align()`, or any other layout adjustment.
+</ParamField>
+
+<ParamField path="textStyle" type="TextStyleToken" default="bodyMedium">
+  The typography scale step to apply. Controls font size, weight, line height, and letter spacing from the active theme. See the full token list below.
+</ParamField>
+
+<ParamField path="color" type="ColorToken | string" default="onSurface">
+  The text color. Accepts a theme `ColorToken` (e.g. `primary`, `onSurface`) or a direct CSS color string (e.g. `#ff0000`, `rgb(0,128,0)`). Theme tokens automatically update when the color scheme changes; raw CSS strings do not.
+</ParamField>
+
+### TextStyle tokens
+
+The full Material 3 type scale is available as named string tokens. Each token corresponds to a distinct combination of typeface, size, weight, and tracking defined in the active theme.
+
+| Category | Tokens |
+|---|---|
+| **Display** | `displayLarge`, `displayMedium`, `displaySmall` |
+| **Headline** | `headlineLarge`, `headlineMedium`, `headlineSmall` |
+| **Title** | `titleLarge`, `titleMedium`, `titleSmall` |
+| **Body** | `bodyLarge`, `bodyMedium`, `bodySmall` |
+| **Label** | `labelLarge`, `labelMedium`, `labelSmall` |
+
+You can also import the `TextStyle` constant object for IDE autocompletion:
+
+```ts
+import { TextStyle } from "@danielito1996/compose-svelted";
+
+// TextStyle.BodyLarge === "bodyLarge"
+// TextStyle.TitleMedium === "titleMedium"
+// etc.
+```
+
+### Code examples
+
+```svelte
+<script lang="ts">
+  import { Text, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<!-- Display — large hero text -->
+<Text textStyle="displayLarge">Welcome</Text>
+
+<!-- Headline — section heading -->
+<Text textStyle="headlineMedium">Your Profile</Text>
+
+<!-- Title — card heading -->
+<Text textStyle="titleMedium">Recent Activity</Text>
+
+<!-- Body — paragraph content (default) -->
+<Text textStyle="bodyMedium">
+  This is a paragraph of body text rendered using the active theme typography.
+</Text>
+
+<!-- Label — small annotation -->
+<Text textStyle="labelSmall" color="onSurfaceVariant">Last updated 2 mins ago</Text>
+
+<!-- Direct CSS color override -->
+<Text textStyle="bodyLarge" color="#e53935">This text uses a raw hex color.</Text>
+```
+
+<Tip>
+  Prefer theme `ColorToken` values over raw CSS colors whenever possible. Token-based colors automatically adapt to light and dark mode when the `ComposeTheme` provider switches its color scheme.
+</Tip>
+
+### Surface + Text together
+
+```svelte
+<script lang="ts">
+  import { Surface, Text, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<Surface color="surfaceVariant" modifier={Modifier.fillMaxWidth().padding(20)}>
+  <Text textStyle="titleSmall" color="onSurfaceVariant">Section header</Text>
+  <Text textStyle="bodyMedium">
+    Descriptive body text that sits inside a surfaceVariant container. Both
+    colors are resolved from the active theme, so they stay legible in any mode.
+  </Text>
+</Surface>
+```

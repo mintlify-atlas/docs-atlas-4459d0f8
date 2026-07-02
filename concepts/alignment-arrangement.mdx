@@ -1,0 +1,246 @@
+---
+title: "Alignment and Arrangement: Type-Safe Layout Tokens"
+sidebarTitle: "Alignment & Arrangement"
+description: "Explore Compose Svelted's branded Alignment and Arrangement tokens for type-safe, Compose-style control over cross-axis and main-axis layout."
+---
+
+Compose Svelted replicates Jetpack Compose's approach to layout control with two families of type-safe tokens: `Alignment` and `Arrangement`. Rather than passing raw strings like `"center"` or `"space-between"`, you use opaque branded objects that the TypeScript compiler can verify. This means you can never accidentally pass a vertical alignment where a horizontal one is expected — the types are structurally incompatible by design.
+
+## How the Branding Works
+
+Each token carries a `_brand` discriminant field that encodes its axis and context:
+
+```ts
+// HorizontalAlignment — cross-axis of a Column
+type HorizontalAlignment = {
+  readonly _brand: 'HorizontalAlignment';
+  readonly cssValue: string;
+};
+
+// VerticalAlignment — cross-axis of a Row
+type VerticalAlignment = {
+  readonly _brand: 'VerticalAlignment';
+  readonly cssValue: string;
+};
+
+// BoxAlignment — compound alignment for a Box (stack)
+type BoxAlignment = {
+  readonly _brand: 'BoxAlignment';
+  readonly horizontal: string;  // flex-start | center | flex-end
+  readonly vertical: string;    // flex-start | center | flex-end
+};
+```
+
+Because the `_brand` fields differ, TypeScript refuses to unify them — a `VerticalAlignment` cannot satisfy a `HorizontalAlignment` parameter even though both might hold `cssValue: 'center'` internally.
+
+---
+
+## Alignment Tokens
+
+Import the `Alignment` namespace to access all tokens:
+
+```ts
+import { Alignment } from "@danielito1996/compose-svelted";
+```
+
+### Horizontal Alignment — Column cross-axis
+
+These tokens are used as the `horizontalAlignment` prop of a `Column`. They control how children are positioned on the horizontal axis while the column stacks vertically.
+
+| Token                          | CSS equivalent  | Description                         |
+| ------------------------------ | --------------- | ----------------------------------- |
+| `Alignment.Start`              | `flex-start`    | Aligns children to the leading edge |
+| `Alignment.CenterHorizontally` | `center`        | Centres children horizontally       |
+| `Alignment.End`                | `flex-end`      | Aligns children to the trailing edge|
+
+### Vertical Alignment — Row cross-axis
+
+These tokens are used as the `verticalAlignment` prop of a `Row`. They control how children are positioned on the vertical axis while the row flows horizontally.
+
+| Token                       | CSS equivalent | Description                        |
+| --------------------------- | -------------- | ---------------------------------- |
+| `Alignment.Top`             | `flex-start`   | Aligns children to the top edge    |
+| `Alignment.CenterVertically`| `center`       | Centres children vertically        |
+| `Alignment.Bottom`          | `flex-end`     | Aligns children to the bottom edge |
+
+### Box Alignment — stacking alignment
+
+These tokens are used as the `contentAlignment` prop of a `Box`. Because a Box stacks children on top of each other, the alignment encodes both axes at once.
+
+| Token                      | Horizontal    | Vertical      |
+| -------------------------- | ------------- | ------------- |
+| `Alignment.TopStart`       | `flex-start`  | `flex-start`  |
+| `Alignment.TopCenter`      | `center`      | `flex-start`  |
+| `Alignment.TopEnd`         | `flex-end`    | `flex-start`  |
+| `Alignment.CenterStart`    | `flex-start`  | `center`      |
+| `Alignment.Center`         | `center`      | `center`      |
+| `Alignment.CenterEnd`      | `flex-end`    | `center`      |
+| `Alignment.BottomStart`    | `flex-start`  | `flex-end`    |
+| `Alignment.BottomCenter`   | `center`      | `flex-end`    |
+| `Alignment.BottomEnd`      | `flex-end`    | `flex-end`    |
+
+---
+
+## Arrangement Tokens
+
+Import the `Arrangement` namespace to access all tokens:
+
+```ts
+import { Arrangement } from "@danielito1996/compose-svelted";
+```
+
+Arrangement tokens control the **main axis** of a flex container — horizontal distribution in a `Row`, or vertical distribution in a `Column`.
+
+### Static Arrangements
+
+| Token                      | `justify-content`  | Intended axis       |
+| -------------------------- | ------------------ | ------------------- |
+| `Arrangement.Top`          | `flex-start`       | Column (vertical)   |
+| `Arrangement.Bottom`       | `flex-end`         | Column (vertical)   |
+| `Arrangement.Start`        | `flex-start`       | Row (horizontal)    |
+| `Arrangement.End`          | `flex-end`         | Row (horizontal)    |
+| `Arrangement.Center`       | `center`           | Column or Row       |
+| `Arrangement.SpaceBetween` | `space-between`    | Column or Row       |
+| `Arrangement.SpaceAround`  | `space-around`     | Column or Row       |
+| `Arrangement.SpaceEvenly`  | `space-evenly`     | Column or Row       |
+
+### `Arrangement.spacedBy()`
+
+`spacedBy` creates a **spaced** arrangement that adds a uniform CSS `gap` (in pixels) between children. An optional `baseAlign` argument sets the `justify-content` value for the overall distribution:
+
+```ts
+spacedBy(gap: number, baseAlign?: ArrangementValue): ArrangementValue
+```
+
+<ParamField path="gap" type="number">
+  The spacing in pixels between each child element, applied as the CSS `gap` property.
+</ParamField>
+
+<ParamField path="baseAlign" type="ArrangementValue">
+  Optional base arrangement that sets `justify-content`. Defaults to `Arrangement.Top` / `flex-start` when omitted.
+</ParamField>
+
+```ts
+Arrangement.spacedBy(16)                          // gap: 16px, justify-content: flex-start
+Arrangement.spacedBy(16, Arrangement.Center)      // gap: 16px, justify-content: center
+Arrangement.spacedBy(8,  Arrangement.SpaceBetween)// gap: 8px,  justify-content: space-between
+```
+
+---
+
+## Usage Examples
+
+### Column — vertical stack with horizontal centering
+
+```svelte
+<script lang="ts">
+  import { Column, Alignment, Arrangement } from "@danielito1996/compose-svelted";
+</script>
+
+<Column
+  horizontalAlignment={Alignment.CenterHorizontally}
+  verticalArrangement={Arrangement.spacedBy(16)}
+>
+  <Button>First</Button>
+  <Button>Second</Button>
+  <Button>Third</Button>
+</Column>
+```
+
+### Row — horizontal track with vertical centering
+
+```svelte
+<script lang="ts">
+  import { Row, Alignment, Arrangement } from "@danielito1996/compose-svelted";
+</script>
+
+<Row
+  verticalAlignment={Alignment.CenterVertically}
+  horizontalArrangement={Arrangement.SpaceBetween}
+>
+  <Icon name="menu" />
+  <Text>Title</Text>
+  <Icon name="more-vert" />
+</Row>
+```
+
+### Box — stacked layers
+
+```svelte
+<script lang="ts">
+  import { Box, Alignment } from "@danielito1996/compose-svelted";
+</script>
+
+<Box contentAlignment={Alignment.Center}>
+  <Image src="/hero.jpg" />
+  <Text>Centered overlay</Text>
+</Box>
+```
+
+### Combining `spacedBy` with a base alignment
+
+```svelte
+<Column
+  horizontalAlignment={Alignment.Start}
+  verticalArrangement={Arrangement.spacedBy(24, Arrangement.Center)}
+>
+  <!-- Items are spaced 24px apart and the group is centred vertically -->
+  <Card />
+  <Card />
+</Column>
+```
+
+---
+
+## Type Safety in Practice
+
+The TypeScript compiler enforces axis correctness at the call site. Passing the wrong brand produces a compile error:
+
+```ts
+// ✅ Correct — Column accepts HorizontalAlignment on its cross-axis
+<Column horizontalAlignment={Alignment.CenterHorizontally} />
+
+// ❌ Type error — Alignment.CenterVertically is a VerticalAlignment,
+//    not a HorizontalAlignment
+<Column horizontalAlignment={Alignment.CenterVertically} />
+
+// ❌ Type error — BoxAlignment cannot be used as HorizontalAlignment
+<Column horizontalAlignment={Alignment.Center} />
+```
+
+<Note>
+  This mirrors the guarantee provided by Jetpack Compose, where `HorizontalAlignment`, `VerticalAlignment`, and `Alignment` (Box) are separate sealed interfaces that cannot be substituted for one another.
+</Note>
+
+---
+
+## Per-Child Alignment with `Modifier.align()`
+
+Sometimes you need a single child to deviate from the container's default alignment. Apply `Modifier.align()` on that child's modifier instead of changing the whole container:
+
+```svelte
+<script lang="ts">
+  import { Column, Alignment, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<Column horizontalAlignment={Alignment.Start}>
+  <Text>Left-aligned (default)</Text>
+
+  <!-- This child overrides to centre itself within the Column -->
+  <Button modifier={Modifier.align(Alignment.CenterHorizontally)}>
+    Centred button
+  </Button>
+
+  <Text>Left-aligned again</Text>
+</Column>
+```
+
+The modifier's `.align()` method accepts any of the three branded alignment types. Internally, `toStyle()` resolves the brand to the appropriate CSS property:
+
+- `BoxAlignment` → `place-self: <vertical> <horizontal>`
+- `HorizontalAlignment` → `align-self: <cssValue>` (Column cross-axis)
+- `VerticalAlignment` → `align-self: <cssValue>` (Row cross-axis)
+
+<Tip>
+  Use `Modifier.align()` sparingly. If most children need a different alignment than the container default, it is cleaner to change the container's `horizontalAlignment` or `verticalAlignment` prop instead.
+</Tip>

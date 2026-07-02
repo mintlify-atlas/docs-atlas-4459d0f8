@@ -1,0 +1,270 @@
+---
+title: "Theming with ComposeTheme: Colors, Typography, Shapes"
+sidebarTitle: "Theme"
+description: "Configure Compose Svelted's design tokens — colors, typography, shapes, spacing, and elevation — with the ComposeTheme provider component."
+---
+
+Compose Svelted ships with a Material Design 3-inspired theming system. Wrapping your app in `<ComposeTheme>` injects a full set of design tokens as CSS custom properties and makes them available to every component in the tree. You can use the built-in defaults, supply a partial override, or provide completely custom light and dark themes.
+
+## The `ComposeTheme` Component
+
+`ComposeTheme` is a Svelte component that acts as the theme provider. Place it at the root of your application (or around any sub-tree you want to theme independently):
+
+```svelte
+<script lang="ts">
+  import { ComposeTheme } from "@danielito1996/compose-svelted";
+</script>
+
+<ComposeTheme mode="system">
+  <!-- your entire app -->
+</ComposeTheme>
+```
+
+### Props
+
+<ParamField path="light" type="ComposeTheme | undefined">
+  The theme object used when the active mode is `"light"`. Falls back to the built-in `defaultLightTheme` when omitted.
+</ParamField>
+
+<ParamField path="dark" type="ComposeTheme | undefined">
+  The theme object used when the active mode is `"dark"`. Falls back to the built-in `defaultDarkTheme` (same structure as light but with dark palette) when omitted.
+</ParamField>
+
+<ParamField path="mode" type='"light" | "dark" | "system"'>
+  Controls which theme is active. `"system"` (the default) follows the OS preference via `prefers-color-scheme`. Set to `"light"` or `"dark"` to pin the theme explicitly.
+</ParamField>
+
+`ComposeTheme` renders a full-bleed `div` with `display: flex; flex-direction: column` so it acts as a natural flex container for your app's root layout.
+
+---
+
+## CSS Variables
+
+When `ComposeTheme` mounts, it calls `themeToCssVars()` internally and writes the resolved tokens as inline CSS custom properties. Components reference these variables at runtime, so switching the mode re-renders only the CSS — not the component tree.
+
+The variables follow Material Design 3 naming conventions:
+
+| Category    | CSS Variable Prefix                          | Example                                      |
+| ----------- | -------------------------------------------- | -------------------------------------------- |
+| Colors      | `--md-sys-color-*`                           | `--md-sys-color-primary: #FF732F;`           |
+| Typography  | `--md-sys-typescale-*-font-size` etc.        | `--md-sys-typescale-bodyLarge-font-size: 16px;` |
+| Shapes      | `--md-sys-shape-*`                           | `--md-sys-shape-medium: 12px;`               |
+| Elevation   | `--md-sys-elevation-*`                       | `--md-sys-elevation-level2: 0 2px 6px rgba(0,0,0,0.2);` |
+| Spacing     | `--md-sys-spacing-*`                         | `--md-sys-spacing-md: 16px;`                 |
+
+You can reference any of these variables directly in your own CSS or inline styles:
+
+```css
+.my-card {
+  background: var(--md-sys-color-surface);
+  border-radius: var(--md-sys-shape-medium);
+  box-shadow: var(--md-sys-elevation-level1);
+  padding: var(--md-sys-spacing-md);
+}
+```
+
+---
+
+## Color Scheme Tokens
+
+The `ColorScheme` object exports named tokens that map to the keys of the active `colorScheme`. Use them wherever a `ColorToken` is expected (e.g. `Modifier.background()`):
+
+```ts
+import { ColorScheme } from "@danielito1996/compose-svelted";
+```
+
+| Token                          | Key                  | Light Default | Dark Default  |
+| ------------------------------ | -------------------- | ------------- | ------------- |
+| `ColorScheme.Primary`          | `primary`            | `#FF732F`     | `#FC4B19`     |
+| `ColorScheme.OnPrimary`        | `onPrimary`          | `#FFFBF2`     | `#E6E6E6`     |
+| `ColorScheme.Secondary`        | `secondary`          | `#3A3E49`     | `#3A3E49`     |
+| `ColorScheme.OnSecondary`      | `onSecondary`        | `#FFFFFF`     | `#E6E6E6`     |
+| `ColorScheme.Tertiary`         | `tertiary`           | `#6750A4`     | `#D0BCFF`     |
+| `ColorScheme.OnTertiary`       | `onTertiary`         | `#FFFFFF`     | `#381E72`     |
+| `ColorScheme.Background`       | `background`         | `#FFFBF2`     | `#080808`     |
+| `ColorScheme.OnBackground`     | `onBackground`       | `#1C1B1F`     | `#E6E6E6`     |
+| `ColorScheme.Surface`          | `surface`            | `#FFFFFF`     | `#101010`     |
+| `ColorScheme.OnSurface`        | `onSurface`          | `#1C1B1F`     | `#E6E6E6`     |
+| `ColorScheme.SurfaceVariant`   | `surfaceVariant`     | `#F8F9FA`     | `#1E1E1E`     |
+| `ColorScheme.OnSurfaceVariant` | `onSurfaceVariant`   | `#DEE1E6`     | `#CAC4D0`     |
+| `ColorScheme.Outline`          | `outline`            | `#B0B0B0`     | `#4A4A4A`     |
+| `ColorScheme.Error`            | `error`              | `#BA1A1A`     | `#FF6F61`     |
+| `ColorScheme.OnError`          | `onError`            | `#FFFFFF`     | `#080808`     |
+
+<Note>
+  Each token resolves to `var(--md-sys-color-<key>)` at runtime, so the component automatically reacts to theme mode changes without any JavaScript re-renders.
+</Note>
+
+---
+
+## Typography Tokens
+
+The `TextStyle` object exports tokens for every slot in the Material Design 3 type scale:
+
+```ts
+import { TextStyle } from "@danielito1996/compose-svelted";
+```
+
+| Token                     | Font Size | Line Height | Letter Spacing | Weight |
+| ------------------------- | --------- | ----------- | -------------- | ------ |
+| `TextStyle.DisplayLarge`  | 57px      | 64px        | -0.25px        | 400    |
+| `TextStyle.DisplayMedium` | 45px      | 52px        | 0px            | 400    |
+| `TextStyle.DisplaySmall`  | 36px      | 44px        | 0px            | 400    |
+| `TextStyle.HeadlineLarge` | 32px      | 40px        | 0px            | 400    |
+| `TextStyle.HeadlineMedium`| 28px      | 36px        | 0px            | 400    |
+| `TextStyle.HeadlineSmall` | 24px      | 32px        | 0px            | 400    |
+| `TextStyle.TitleLarge`    | 22px      | 28px        | 0px            | 400    |
+| `TextStyle.TitleMedium`   | 16px      | 24px        | 0.15px         | 500    |
+| `TextStyle.TitleSmall`    | 14px      | 20px        | 0.1px          | 500    |
+| `TextStyle.BodyLarge`     | 16px      | 24px        | 0.5px          | 400    |
+| `TextStyle.BodyMedium`    | 14px      | 20px        | 0.25px         | 400    |
+| `TextStyle.BodySmall`     | 12px      | 16px        | 0.4px          | 400    |
+| `TextStyle.LabelLarge`    | 14px      | 20px        | 0.1px          | 500    |
+| `TextStyle.LabelMedium`   | 12px      | 16px        | 0.5px          | 500    |
+| `TextStyle.LabelSmall`    | 11px      | 16px        | 0.5px          | 500    |
+
+All typography variants use the system font stack: `system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif` by default. Override `fontFamily` in your custom theme object to use a different typeface.
+
+---
+
+## Shape Tokens
+
+Shape tokens control `border-radius` values across components. They are exposed as CSS variables and via the `shapes` object in the theme:
+
+| Key          | Default Value | CSS Variable                |
+| ------------ | ------------- | --------------------------- |
+| `none`       | `0px`         | `--md-sys-shape-none`       |
+| `extraSmall` | `4px`         | `--md-sys-shape-extraSmall` |
+| `small`      | `8px`         | `--md-sys-shape-small`      |
+| `medium`     | `12px`        | `--md-sys-shape-medium`     |
+| `large`      | `16px`        | `--md-sys-shape-large`      |
+
+Use `RoundedCornerShape` from the Modifier system when you need custom per-corner radii. Use the theme shape tokens for consistent, reusable radii across your design system.
+
+---
+
+## Spacing Tokens
+
+Spacing tokens provide a consistent set of named sizes:
+
+| Key  | Value | CSS Variable             |
+| ---- | ----- | ------------------------ |
+| `xs` | `4px` | `--md-sys-spacing-xs`    |
+| `sm` | `8px` | `--md-sys-spacing-sm`    |
+| `md` | `16px`| `--md-sys-spacing-md`    |
+| `lg` | `24px`| `--md-sys-spacing-lg`    |
+| `xl` | `32px`| `--md-sys-spacing-xl`    |
+
+---
+
+## Elevation Tokens
+
+Five elevation levels provide ready-made `box-shadow` values that map to Material Design elevation surfaces:
+
+| Key      | Shadow                                   | CSS Variable                  |
+| -------- | ---------------------------------------- | ----------------------------- |
+| `level0` | `none`                                   | `--md-sys-elevation-level0`   |
+| `level1` | `0 1px 2px rgba(0,0,0,0.2)`              | `--md-sys-elevation-level1`   |
+| `level2` | `0 2px 6px rgba(0,0,0,0.2)`              | `--md-sys-elevation-level2`   |
+| `level3` | `0 6px 12px rgba(0,0,0,0.25)`            | `--md-sys-elevation-level3`   |
+| `level4` | `0 12px 24px rgba(0,0,0,0.3)`            | `--md-sys-elevation-level4`   |
+
+---
+
+## Density Tokens
+
+The `Density` object provides two density modes for adapting component sizing:
+
+```ts
+import { Density } from "@danielito1996/compose-svelted";
+
+Density.Default  // "default"
+Density.Compact  // "compact"
+```
+
+Pass a `DensityToken` to components that support density scaling to switch between standard and compact sizing. This mirrors the density system in Jetpack Compose Material 3.
+
+---
+
+## Custom Theme
+
+Override any or all tokens by constructing a `ComposeTheme` object and passing it to the `light` or `dark` prop. Only the fields you provide will differ from the defaults:
+
+```svelte
+<script lang="ts">
+  import { ComposeTheme } from "@danielito1996/compose-svelted";
+  import type { ComposeTheme as Theme } from "@danielito1996/compose-svelted";
+
+  const myLight: Theme = {
+    colorScheme: {
+      primary: "#6750A4",
+      onPrimary: "#FFFFFF",
+      secondary: "#625B71",
+      onSecondary: "#FFFFFF",
+      tertiary: "#7D5260",
+      onTertiary: "#FFFFFF",
+      background: "#FFFBFE",
+      onBackground: "#1C1B1F",
+      surface: "#FFFBFE",
+      onSurface: "#1C1B1F",
+      surfaceVariant: "#E7E0EC",
+      onSurfaceVariant: "#49454F",
+      outline: "#79747E",
+      error: "#B3261E",
+      onError: "#FFFFFF",
+    },
+    typography: {
+      // Provide all 15 TextStyle entries or spread from defaultTypography
+      // to override individual slots
+      displayLarge:  { fontFamily: "Inter, sans-serif", fontSize: "57px", lineHeight: "64px", letterSpacing: "-0.25px", fontWeight: 400 },
+      displayMedium: { fontFamily: "Inter, sans-serif", fontSize: "45px", lineHeight: "52px", letterSpacing: "0px",     fontWeight: 400 },
+      displaySmall:  { fontFamily: "Inter, sans-serif", fontSize: "36px", lineHeight: "44px", letterSpacing: "0px",     fontWeight: 400 },
+      headlineLarge:  { fontFamily: "Inter, sans-serif", fontSize: "32px", lineHeight: "40px", letterSpacing: "0px", fontWeight: 400 },
+      headlineMedium: { fontFamily: "Inter, sans-serif", fontSize: "28px", lineHeight: "36px", letterSpacing: "0px", fontWeight: 400 },
+      headlineSmall:  { fontFamily: "Inter, sans-serif", fontSize: "24px", lineHeight: "32px", letterSpacing: "0px", fontWeight: 400 },
+      titleLarge:  { fontFamily: "Inter, sans-serif", fontSize: "22px", lineHeight: "28px", letterSpacing: "0px",    fontWeight: 400 },
+      titleMedium: { fontFamily: "Inter, sans-serif", fontSize: "16px", lineHeight: "24px", letterSpacing: "0.15px", fontWeight: 500 },
+      titleSmall:  { fontFamily: "Inter, sans-serif", fontSize: "14px", lineHeight: "20px", letterSpacing: "0.1px",  fontWeight: 500 },
+      bodyLarge:  { fontFamily: "Inter, sans-serif", fontSize: "16px", lineHeight: "24px", letterSpacing: "0.5px",  fontWeight: 400 },
+      bodyMedium: { fontFamily: "Inter, sans-serif", fontSize: "14px", lineHeight: "20px", letterSpacing: "0.25px", fontWeight: 400 },
+      bodySmall:  { fontFamily: "Inter, sans-serif", fontSize: "12px", lineHeight: "16px", letterSpacing: "0.4px",  fontWeight: 400 },
+      labelLarge:  { fontFamily: "Inter, sans-serif", fontSize: "14px", lineHeight: "20px", letterSpacing: "0.1px", fontWeight: 500 },
+      labelMedium: { fontFamily: "Inter, sans-serif", fontSize: "12px", lineHeight: "16px", letterSpacing: "0.5px", fontWeight: 500 },
+      labelSmall:  { fontFamily: "Inter, sans-serif", fontSize: "11px", lineHeight: "16px", letterSpacing: "0.5px", fontWeight: 500 },
+    },
+    shapes: {
+      none: "0px",
+      extraSmall: "4px",
+      small: "8px",
+      medium: "12px",
+      large: "16px",
+    },
+    spacing: {
+      xs: "4px",
+      sm: "8px",
+      md: "16px",
+      lg: "24px",
+      xl: "32px",
+    },
+    elevation: {
+      level0: "none",
+      level1: "0 1px 2px rgba(0,0,0,0.2)",
+      level2: "0 2px 6px rgba(0,0,0,0.2)",
+      level3: "0 6px 12px rgba(0,0,0,0.25)",
+      level4: "0 12px 24px rgba(0,0,0,0.3)",
+    },
+  };
+</script>
+
+<ComposeTheme light={myLight} mode="light">
+  <!-- your app -->
+</ComposeTheme>
+```
+
+<Tip>
+  You can also use `mode="system"` alongside both `light` and `dark` props to ship a fully custom adaptive theme that still respects the user's OS preference automatically.
+</Tip>
+
+<Warning>
+  The `typography` field requires all 15 `TextStyle` entries to be present — there is no partial-merge for typography at the type level. Copy and spread from the source defaults if you only need to change a single slot.
+</Warning>

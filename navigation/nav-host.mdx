@@ -1,0 +1,254 @@
+---
+title: "NavHost: Rendering Screens from Route Definitions"
+sidebarTitle: "NavHost"
+description: "NavHost watches the NavController's back stack and renders the matching screen component, with animated transitions and automatic prop injection."
+---
+
+`NavHost` is the Svelte component that brings your navigation graph to life. It subscribes to the `NavController`'s back-stack store, looks up the route at the top of the stack, and renders the corresponding screen component — automatically injecting `navController` and `navBackStackEntry` as props so every screen can navigate and read its arguments without any extra wiring. Transitions between screens are animated by default.
+
+## Props
+
+<ParamField path="navController" type="NavController" required>
+  The `NavController` instance created with `rememberNavController()`. `NavHost` subscribes to its internal store on mount and re-renders whenever the back stack changes.
+</ParamField>
+
+<ParamField path="routes" type="{ route: { path: string }; component: any }[]" required>
+  An array of route/component pairs. Build this array using the `composable()` helper — one entry per screen. The order of entries does not matter; `NavHost` finds the active screen by matching `route.path` against the current back-stack entry.
+</ParamField>
+
+<ParamField path="transition" type="ContentTransition" default="fade(320)">
+  The animation played between route changes. Import `fade`, `slideHorizontal`, or any custom `ContentTransition` from `@danielito1996/compose-svelted`. Defaults to a 320 ms fade.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A `Modifier` applied to the outer wrapper `div`. `NavHost` fills 100 % of its parent's width and height by default; use the modifier to add padding, background colour, or other styles at the host level.
+</ParamField>
+
+## The `composable()` Helper
+
+`composable()` creates a single entry in the routes array. It takes a `Route` object and a factory function that returns the screen component, then resolves the component immediately and pairs it with the route.
+
+```ts
+function composable<T>(
+  route: Route<T>,
+  factory: () => any
+): { route: Route<T>; component: any }
+```
+
+<ParamField path="route" type="Route<T>" required>
+  The `Route` constant whose `path` will be matched against back-stack entries.
+</ParamField>
+
+<ParamField path="factory" type="() => any" required>
+  A zero-argument function that returns the Svelte component class. Using a factory (`() => MyScreen`) rather than a direct reference keeps the API consistent and allows for lazy evaluation patterns in the future.
+</ParamField>
+
+```ts
+import { composable } from "@danielito1996/compose-svelted";
+import HomeScreen from "./HomeScreen.svelte";
+import { Routes } from "./routes";
+
+const routes = [
+  composable(Routes.Home, () => HomeScreen),
+];
+```
+
+## Screen Props Convention
+
+`NavHost` automatically passes two props to every rendered screen component. Declare them with `export let` to receive them:
+
+<ParamField path="navController" type="NavController">
+  The same `NavController` instance passed to `NavHost`. Screens use this to call `navigate()` and `popBackStack()`.
+</ParamField>
+
+<ParamField path="navBackStackEntry" type="NavBackStackEntry">
+  The current back-stack entry — `{ route: string, args?: unknown }`. Access `args` here to read any data passed by the previous screen when it called `navigate(route, args)`.
+</ParamField>
+
+<Note>
+  Both props are injected via `<svelte:component this={...} navController={...} navBackStackEntry={...} />` inside `NavHost`. You do not need to thread them through manually — just declare `export let navController` and `export let navBackStackEntry` in each screen and they will be populated automatically.
+</Note>
+
+## Full Multi-Screen Example
+
+The following example walks through a three-file setup: route definitions, two screen components, and the root `App.svelte` that wires everything together with a horizontal slide transition.
+
+### 1. Define Routes
+
+```ts
+// routes.ts
+import type { Route } from "@danielito1996/compose-svelted";
+
+export const Routes = {
+  Login:   { path: "login"   } satisfies Route,
+  Home:    { path: "home"    } satisfies Route,
+  Details: { path: "details" } satisfies Route,
+} as const;
+```
+
+### 2. Create Screens
+
+```svelte
+<!-- LoginScreen.svelte -->
+<script lang="ts">
+  import {
+    Column, Text, Button,
+    Modifier, Arrangement, Alignment,
+  } from "@danielito1996/compose-svelted";
+  import type { NavController } from "@danielito1996/compose-svelted";
+  import { Routes } from "./routes";
+
+  export let navController: NavController;
+</script>
+
+<Column
+  modifier={Modifier.fillMaxSize().padding(32)}
+  verticalArrangement={Arrangement.Center}
+  horizontalAlignment={Alignment.CenterHorizontally}
+>
+  <Text textStyle="headlineMedium">Login</Text>
+  <Button
+    modifier={Modifier.marginTop(24).fillMaxWidth()}
+    onClick={() => navController.navigate(Routes.Home.path)}
+  >
+    <Text>Sign In</Text>
+  </Button>
+</Column>
+```
+
+```svelte
+<!-- HomeScreen.svelte -->
+<script lang="ts">
+  import {
+    Column, Text, Button,
+    Modifier, Arrangement, Alignment,
+  } from "@danielito1996/compose-svelted";
+  import type { NavController } from "@danielito1996/compose-svelted";
+  import { Routes } from "./routes";
+
+  export let navController: NavController;
+</script>
+
+<Column
+  modifier={Modifier.fillMaxSize().padding(32)}
+  verticalArrangement={Arrangement.Center}
+  horizontalAlignment={Alignment.CenterHorizontally}
+>
+  <Text textStyle="headlineMedium">Home</Text>
+  <Button
+    onClick={() => navController.navigate(Routes.Details.path, { id: 42, title: "Product" })}
+  >
+    <Text>View Details</Text>
+  </Button>
+  <Button onClick={() => navController.popBackStack()}>
+    <Text>Log Out</Text>
+  </Button>
+</Column>
+```
+
+```svelte
+<!-- DetailsScreen.svelte -->
+<script lang="ts">
+  import {
+    Column, Text, Button, Modifier, Arrangement, Alignment,
+  } from "@danielito1996/compose-svelted";
+  import type { NavController, NavBackStackEntry } from "@danielito1996/compose-svelted";
+
+  export let navController: NavController;
+  export let navBackStackEntry: NavBackStackEntry;
+
+  const { id, title } = navBackStackEntry?.args as { id: number; title: string } ?? {};
+</script>
+
+<Column
+  modifier={Modifier.fillMaxSize().padding(32)}
+  verticalArrangement={Arrangement.Center}
+  horizontalAlignment={Alignment.CenterHorizontally}
+>
+  <Text textStyle="headlineMedium">{title}</Text>
+  <Text>ID: {id}</Text>
+  <Button onClick={() => navController.popBackStack()}>
+    <Text>Go Back</Text>
+  </Button>
+</Column>
+```
+
+### 3. Assemble in App.svelte
+
+```svelte
+<!-- App.svelte -->
+<script lang="ts">
+  import {
+    ComposeTheme, AppRoot,
+    NavHost, rememberNavController, composable,
+    slideHorizontal,
+  } from "@danielito1996/compose-svelted";
+  import LoginScreen   from "./LoginScreen.svelte";
+  import HomeScreen    from "./HomeScreen.svelte";
+  import DetailsScreen from "./DetailsScreen.svelte";
+  import { Routes }    from "./routes";
+
+  const navController = rememberNavController(Routes.Login.path);
+
+  const routes = [
+    composable(Routes.Login,    () => LoginScreen),
+    composable(Routes.Home,     () => HomeScreen),
+    composable(Routes.Details,  () => DetailsScreen),
+  ];
+</script>
+
+<ComposeTheme mode="system">
+  <AppRoot>
+    <NavHost
+      {navController}
+      {routes}
+      transition={slideHorizontal()}
+    />
+  </AppRoot>
+</ComposeTheme>
+```
+
+<Tip>
+  Swap `slideHorizontal()` for `fade(200)` or any other `ContentTransition` export to change the animation without touching your screens. The transition prop is the only place you need to update.
+</Tip>
+
+## Using NavHost as a Nested Navigator
+
+`NavHost` is a plain Svelte component, so you can nest one inside another screen to create sub-graphs. Pass a separate `NavController` (scoped to the parent screen's lifetime) to the inner `NavHost` for independent back stacks.
+
+```svelte
+<!-- ProfileSection.svelte — inner nav graph -->
+<script lang="ts">
+  import { NavHost, rememberNavController, composable, Modifier } from "@danielito1996/compose-svelted";
+  import ProfileOverview from "./ProfileOverview.svelte";
+  import EditProfile     from "./EditProfile.svelte";
+
+  const innerNav = rememberNavController("profile-overview");
+
+  const innerRoutes = [
+    composable({ path: "profile-overview" }, () => ProfileOverview),
+    composable({ path: "edit-profile" },     () => EditProfile),
+  ];
+</script>
+
+<NavHost
+  navController={innerNav}
+  routes={innerRoutes}
+  modifier={Modifier.fillMaxSize()}
+/>
+```
+
+<Note>
+  Nested navigation and shared-element transitions are planned for Core V3. The current implementation supports flat and manually nested graphs; automatic back-stack merging across nested hosts is not yet available.
+</Note>
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Navigation Overview" icon="map" href="/navigation/overview">
+    Start here for the full architecture diagram and six-step setup walkthrough.
+  </Card>
+  <Card title="NavController" icon="sliders" href="/navigation/nav-controller">
+    Deep dive into navigate(), popBackStack(), and passing typed args between screens.
+  </Card>
+</CardGroup>

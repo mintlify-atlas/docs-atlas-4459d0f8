@@ -1,20 +1,81 @@
 ---
-title: "Introduction"
-description: "Welcome to your project"
+title: "Compose Svelted: Jetpack Compose mental model for Svelte"
+sidebarTitle: "Home"
+description: "Compose Svelted brings the Jetpack Compose developer experience to Svelte — declarative layout, immutable modifiers, structural motion, and navigation as state."
 ---
 
-Write a short description of your product here. What it does, who it's for, and what they can accomplish with it.
+Compose Svelted is an open-source UI library for Svelte that maps the **Jetpack Compose mental model** to the web. If you've built Android UIs with Compose, the components, modifiers, alignment tokens, and navigation patterns will feel immediately familiar — without any virtual DOM abstraction or Skia dependency.
 
-<Tip>
-  Ready to make this your own? Start by editing this page. Update your `docs.json` file to customize your site. Then fill out the [Quickstart](/quickstart) page.
-</Tip>
+<CardGroup cols={2}>
+  <Card title="Introduction" icon="book-open" href="/introduction">
+    Understand the philosophy behind Compose Svelted and how it differs from other Svelte UI libraries.
+  </Card>
+  <Card title="Installation" icon="download" href="/installation">
+    Add Compose Svelted to your Svelte 5 project in minutes and configure the CSS baseline.
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Build your first screen with ComposeTheme, layouts, and components in under 5 minutes.
+  </Card>
+  <Card title="Modifier System" icon="wand-magic-sparkles" href="/concepts/modifier">
+    Learn the immutable, chainable Modifier API — the core primitive for layout and styling.
+  </Card>
+</CardGroup>
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  This card links to the quickstart page in your project.
-</Card>
-<Card title="Components" icon="puzzle-piece" href="https://mintlify.com/docs/components">
-  Add cards, callouts, steps, tabs, and more to design and structure your pages.
-</Card>
-<Card title="Settings" icon="gear" href="https://mintlify.com/docs/organize/settings">
-  Set your site name, branding, and navigation in the `docs.json` file.
-</Card>
+## What's inside
+
+Compose Svelted ships with everything you need to build complete, production-quality UIs.
+
+<CardGroup cols={3}>
+  <Card title="Layouts" icon="table-columns" href="/layouts/column-row-box">
+    Column, Row, Box, Scaffold, LazyColumn, LazyRow
+  </Card>
+  <Card title="UI Components" icon="puzzle-piece" href="/components/surface-text">
+    Buttons, Cards, TextFields, Menus, Image, Icon
+  </Card>
+  <Card title="Theming" icon="palette" href="/concepts/theme">
+    Material 3 color tokens, typography, shapes, spacing
+  </Card>
+  <Card title="Motion" icon="film" href="/motion/animated-visibility">
+    AnimatedVisibility, AnimatedContent, animation specs
+  </Card>
+  <Card title="Navigation" icon="map" href="/navigation/overview">
+    NavController, NavHost, back-stack management
+  </Card>
+  <Card title="Examples" icon="code" href="/examples/login-screen">
+    Real-world login screens and navigation flows
+  </Card>
+</CardGroup>
+
+## Get started in 3 steps
+
+<Steps>
+  <Step title="Install the package">
+    ```bash
+    npm install @danielito1996/compose-svelted
+    ```
+  </Step>
+  <Step title="Import the CSS baseline">
+    ```ts
+    import "@danielito1996/compose-svelted/baseline.css";
+    ```
+  </Step>
+  <Step title="Wrap your app and build">
+    ```svelte
+    <script>
+      import { ComposeTheme, AppRoot, Column, Text } from "@danielito1996/compose-svelted";
+    </script>
+
+    <ComposeTheme mode="system">
+      <AppRoot>
+        <Column>
+          <Text textStyle="headlineMedium">Hello, Compose Svelted!</Text>
+        </Column>
+      </AppRoot>
+    </ComposeTheme>
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  Compose Svelted requires **Svelte 5** as a peer dependency. It is currently in **alpha** — the core API (layouts, modifiers, theme, motion, navigation) is stable, with more features planned in Core V3.
+</Note>

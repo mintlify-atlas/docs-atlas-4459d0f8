@@ -1,47 +1,218 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Build Your First Screen with Compose Svelted"
+sidebarTitle: "Quickstart"
+description: "Go from a fresh Svelte 5 project to a working interactive screen using Column, Text, Button, Modifier, and the ComposeTheme provider."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
-
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+This guide walks you from a blank Svelte 5 project to a fully working, interactive screen using Compose Svelted's core primitives. By the end you will have a running app with a theme provider, a layout, styled text, and a reactive button — and you will understand the composition pattern that every Compose Svelted screen follows.
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
 
-    ```bash
-    npm install your-package
-    ```
-  </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+<Step title="Install the package">
 
-    ```bash
-    your-cli init
-    ```
-  </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+Add Compose Svelted to your Svelte 5 project:
 
-    ```bash
-    your-cli start
-    ```
-  </Step>
+```bash
+npm install @danielito1996/compose-svelted
+```
+
+Svelte 5 is a peer dependency. If you do not have it yet, install it alongside:
+
+```bash
+npm install svelte@^5.0.0
+```
+
+</Step>
+
+<Step title="Import the CSS baseline">
+
+Open your app entry point (typically `src/main.ts`) and import the baseline CSS as the very first import. This establishes the layout contract that all Compose Svelted components rely on.
+
+```ts
+import "@danielito1996/compose-svelted/baseline.css";
+import App from "./App.svelte";
+import { mount } from "svelte";
+
+mount(App, { target: document.getElementById("app")! });
+```
+
+If your app already has strong global styles and you want minimal interference, use `baseline-safe.css` instead. See the [Installation guide](/installation) for the full comparison.
+
+</Step>
+
+<Step title="Wrap your app with ComposeTheme and AppRoot">
+
+Every Compose Svelted application starts with two root components:
+
+- **`ComposeTheme`** — provides the Material 3 design token system (color scheme, typography scale, density). The `mode` prop accepts `"light"`, `"dark"`, or `"system"` to follow the OS preference automatically.
+- **`AppRoot`** — anchors the layout tree to the full viewport. It is a `position: relative` flex container that fills 100% of its parent (the viewport, thanks to the baseline) and clips overflow so children cannot accidentally break the layout.
+
+```svelte
+<!-- src/App.svelte -->
+<script lang="ts">
+  import { ComposeTheme, AppRoot } from "@danielito1996/compose-svelted";
+</script>
+
+<ComposeTheme mode="system">
+  <AppRoot>
+    <!-- your screen goes here -->
+  </AppRoot>
+</ComposeTheme>
+```
+
+</Step>
+
+<Step title="Add your first layout with Column, Row, and Text">
+
+`Column` stacks its children vertically. Provide a `Modifier` to control its size and spacing, and use `horizontalAlignment` and `verticalArrangement` to position its children — the same props you know from Jetpack Compose.
+
+```svelte
+<script lang="ts">
+  import {
+    ComposeTheme,
+    AppRoot,
+    Column,
+    Text,
+    Modifier,
+    Alignment,
+    Arrangement,
+  } from "@danielito1996/compose-svelted";
+</script>
+
+<ComposeTheme mode="system">
+  <AppRoot>
+    <Column
+      modifier={Modifier.fillMaxSize().padding(24)}
+      horizontalAlignment={Alignment.CenterHorizontally}
+      verticalArrangement={Arrangement.spacedBy(16)}
+    >
+      <Text textStyle="headlineMedium">Hello, Compose Svelted!</Text>
+      <Text textStyle="bodyLarge">Welcome to your first screen.</Text>
+    </Column>
+  </AppRoot>
+</ComposeTheme>
+```
+
+`Modifier.fillMaxSize()` expands the column to fill `AppRoot`. `.padding(24)` adds 24 px of inset on all sides. `Arrangement.spacedBy(16)` places 16 px of gap between every child — no manual margin needed.
+
+</Step>
+
+<Step title="Add interactivity with Button">
+
+Import `Button` and add a reactive counter. `Button` accepts an `onClick` prop (a plain function) and uses the `Modifier` system for sizing — here `fillMaxWidth` stretches it to the column's full width.
+
+```svelte
+<script lang="ts">
+  import {
+    ComposeTheme,
+    AppRoot,
+    Column,
+    Text,
+    Button,
+    Modifier,
+    Alignment,
+    Arrangement,
+  } from "@danielito1996/compose-svelted";
+
+  let count = $state(0);
+</script>
+
+<ComposeTheme mode="system">
+  <AppRoot>
+    <Column
+      modifier={Modifier.fillMaxSize().padding(24)}
+      horizontalAlignment={Alignment.CenterHorizontally}
+      verticalArrangement={Arrangement.spacedBy(16)}
+    >
+      <Text textStyle="headlineMedium">Hello, Compose Svelted!</Text>
+      <Text textStyle="bodyLarge">Count: {count}</Text>
+      <Button onClick={() => count++} modifier={Modifier.fillMaxWidth()}>
+        <Text>Increment</Text>
+      </Button>
+    </Column>
+  </AppRoot>
+</ComposeTheme>
+```
+
+</Step>
+
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## Complete Example
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+Here is a finished, runnable screen that brings everything together. Drop this into `src/App.svelte` (with the baseline CSS imported in `main.ts`) and it works immediately.
+
+```svelte
+<script lang="ts">
+  import {
+    ComposeTheme,
+    AppRoot,
+    Column,
+    Row,
+    Text,
+    Button,
+    Surface,
+    Modifier,
+    Alignment,
+    Arrangement,
+  } from "@danielito1996/compose-svelted";
+
+  let count = $state(0);
+</script>
+
+<ComposeTheme mode="system">
+  <AppRoot>
+    <Column
+      modifier={Modifier.fillMaxSize().padding(24)}
+      horizontalAlignment={Alignment.CenterHorizontally}
+      verticalArrangement={Arrangement.spacedBy(16)}
+    >
+      <Text textStyle="headlineMedium">Hello, Compose Svelted!</Text>
+      <Text textStyle="bodyLarge">Count: {count}</Text>
+      <Row verticalAlignment={Alignment.CenterVertically}>
+        <Button onClick={() => count--} modifier={Modifier.padding(8)}>
+          <Text>−</Text>
+        </Button>
+        <Text textStyle="titleLarge">{count}</Text>
+        <Button onClick={() => count++} modifier={Modifier.padding(8)}>
+          <Text>+</Text>
+        </Button>
+      </Row>
+      <Button
+        onClick={() => (count = 0)}
+        modifier={Modifier.fillMaxWidth()}
+      >
+        <Text>Reset</Text>
+      </Button>
+    </Column>
+  </AppRoot>
+</ComposeTheme>
+```
+
+## What you used
+
+| API | What it does |
+|---|---|
+| `ComposeTheme` | Provides the Material 3 token system and resolves light/dark/system color scheme |
+| `AppRoot` | Anchors the layout tree to the viewport; position root for absolute layers |
+| `Column` | Stacks children vertically with explicit alignment and arrangement |
+| `Row` | Lays children out horizontally with explicit alignment and arrangement |
+| `Text` | Renders text with a typography scale token (`textStyle` prop) |
+| `Button` | Filled button; content is a slot; `onClick` is a plain function |
+| `Modifier` | Immutable, chainable layout descriptor — `fillMaxSize`, `fillMaxWidth`, `padding`, and more |
+| `Alignment` | Named alignment constants: `CenterHorizontally`, `CenterVertically`, `Center`, etc. |
+| `Arrangement` | Named arrangement constants: `spacedBy`, `Center`, `SpaceBetween`, etc. |
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Modifier System" icon="link-2" href="/concepts/modifier">
+    Learn the full Modifier API: padding, size, clip, background, border, scroll, and how to chain them immutably.
+  </Card>
+  <Card title="Theme & Colors" icon="palette" href="/concepts/theme">
+    Customize your color scheme, typography scale, and density. Provide custom light and dark themes to ComposeTheme.
+  </Card>
+  <Card title="Layout Components" icon="layout-panel-left" href="/layouts/column-row-box">
+    Explore Column, Row, Box, Scaffold, LazyColumn, and LazyRow with all their alignment and arrangement options.
+  </Card>
+</CardGroup>

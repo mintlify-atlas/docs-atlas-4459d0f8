@@ -1,0 +1,217 @@
+---
+title: "Image and Icon: Visual Content Components"
+sidebarTitle: "Image & Icon"
+description: "Use Image and Icon to render photos and SVG icons in Compose Svelted, with ContentScale tokens, tint colors, and painterResource for local assets."
+---
+
+`Image` and `Icon` are Compose Svelted's two visual content primitives, mirroring Jetpack Compose's `Image` and `Icon` composables. `Image` renders a photo or raster graphic inside a constrained container with configurable object-fit behaviour via `ContentScale` tokens. `Icon` renders an SVG icon using a CSS mask technique, letting you tint it with any theme color token or raw CSS color without embedding SVG markup inline. Both accept a `painter` prop — a URL string — and a `modifier` for layout.
+
+## Image
+
+`Image` places an `<img>` element inside an `overflow: hidden` wrapper that is sized entirely by the `modifier`. The image's internal fit behaviour is controlled by the `contentScale` prop, which maps Jetpack Compose's `ContentScale` values to their CSS `object-fit` equivalents.
+
+<ParamField path="painter" type="string" default="">
+  The URL of the image to render. Can be any valid `src` value: an absolute HTTPS URL, a relative path, or an asset path constructed with `painterResource()`.
+</ParamField>
+
+<ParamField path="contentScale" type="ContentScaleToken" default="ContentScale.Fit">
+  Controls how the image is fitted inside its container. See the [ContentScale tokens](#contentscale-tokens) section below for the full list of values.
+</ParamField>
+
+<ParamField path="contentDescription" type="string" default="">
+  Accessibility `alt` text for the rendered image. Always provide a meaningful description for non-decorative images.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` applied to the outer container div. This div determines the dimensions of the image area — use `Modifier.fillMaxWidth().height(200)` to create a banner, or `Modifier.size(64)` for an avatar.
+</ParamField>
+
+### ContentScale tokens
+
+The `ContentScale` object maps Jetpack Compose naming to CSS `object-fit` semantics:
+
+| Token | CSS value | Description |
+|---|---|---|
+| `ContentScale.Crop` | `cover` | Scales the image to fill the container, cropping excess. Aspect ratio is preserved. |
+| `ContentScale.Fit` | `contain` | Scales the image to fit entirely within the container. Aspect ratio is preserved. Letterboxes if needed. |
+| `ContentScale.FillBounds` | `fill` | Stretches the image to fill the container exactly. Aspect ratio is **not** preserved. |
+| `ContentScale.Inside` | `contain` | Same as `Fit` — scales down to fit, never scales up. |
+| `ContentScale.FillWidth` | `fillWidth` | Scales to fill the full width of the container; height is auto. |
+| `ContentScale.FillHeight` | `fillHeight` | Scales to fill the full height of the container; width is auto. |
+| `ContentScale.None` | `none` | No scaling applied — image is rendered at its natural size. |
+
+```svelte
+<script lang="ts">
+  import { Image, ContentScale, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<!-- Banner: fill width, crop height -->
+<Image
+  painter="https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=1200"
+  contentScale={ContentScale.Crop}
+  contentDescription="Mountain landscape hero image"
+  modifier={Modifier.fillMaxWidth().height(200)}
+/>
+
+<!-- Avatar: fixed square, cropped -->
+<Image
+  painter="https://i.pravatar.cc/150?img=3"
+  contentScale={ContentScale.Crop}
+  contentDescription="User avatar"
+  modifier={Modifier.size(64)}
+/>
+
+<!-- Thumbnail: fit inside, preserve aspect ratio -->
+<Image
+  painter="https://images.unsplash.com/photo-1560807707-8cc77767d783?w=400"
+  contentScale={ContentScale.Fit}
+  contentDescription="Product thumbnail"
+  modifier={Modifier.size(120)}
+/>
+
+<!-- Full stretch (no aspect ratio preservation) -->
+<Image
+  painter="https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=800"
+  contentScale={ContentScale.FillBounds}
+  contentDescription="Stretched background"
+  modifier={Modifier.fillMaxWidth().height(160)}
+/>
+```
+
+<Tip>
+  `ContentScale.Crop` is the most common choice for avatars and hero banners. `ContentScale.Fit` is better for product images where you never want cropping.
+</Tip>
+
+---
+
+## Icon
+
+`Icon` renders an SVG icon using the CSS `mask-image` technique. The `painter` URL is applied as a mask over a colored background `div`, which means the icon's fill color is controlled entirely by the `tint` prop rather than by SVG `fill` attributes. This makes it trivially easy to tint any monochrome SVG icon with a theme color token.
+
+<ParamField path="painter" type="string" default="">
+  The URL of the SVG icon. Can be a CDN URL, a relative path, or a path produced by `painterResource()`.
+</ParamField>
+
+<ParamField path="tint" type="ColorToken | string | undefined" default="undefined">
+  The fill color of the icon. When `undefined`, defaults to the `onBackground` theme color. Accepts a `ColorToken` (e.g. `primary`, `error`) for theme-aware coloring, or a direct CSS color string (e.g. `#e53935`, `rgb(0,150,136)`) for explicit values.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` controlling the size and position of the icon container. Always set an explicit size with `Modifier.size(n)` — the container has no intrinsic size of its own.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { Icon, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<!-- Primary-tinted icon -->
+<Icon
+  painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/heart.svg"
+  tint="primary"
+  modifier={Modifier.size(24)}
+/>
+
+<!-- Error-tinted icon -->
+<Icon
+  painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/alert-circle.svg"
+  tint="error"
+  modifier={Modifier.size(24)}
+/>
+
+<!-- Raw hex color -->
+<Icon
+  painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/star.svg"
+  tint="#f59e0b"
+  modifier={Modifier.size(20)}
+/>
+
+<!-- Default tint (onBackground) -->
+<Icon
+  painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/menu.svg"
+  modifier={Modifier.size(24)}
+/>
+```
+
+<Warning>
+  The CSS mask technique only works correctly with **monochrome SVG icons**. Colorful or multi-tone SVGs will appear as a solid block of the `tint` color. Use `Image` instead for logos, illustrations, or multi-color graphics.
+</Warning>
+
+---
+
+## painterResource and Res helpers
+
+For icons and images stored locally in your project's `public/assets/` directory, Compose Svelted provides two helpers that mirror Jetpack Compose's resource lookup API.
+
+### `painterResource(resourceName: string): string`
+
+Resolves a resource name to a public asset URL by prepending `/assets/`. Pass the result directly to the `painter` prop of `Icon` or `Image`.
+
+```ts
+import { painterResource } from "@danielito1996/compose-svelted";
+
+painterResource("close.svg")      // → "/assets/close.svg"
+painterResource("img/avatar.png") // → "/assets/img/avatar.png"
+painterResource("raw/logo.svg")   // → "/assets/raw/logo.svg"
+```
+
+### `Res` — resource namespace helper
+
+`Res` is a set of pure string helpers that build the sub-path portion of an asset path before you pass it to `painterResource`. Each method corresponds to a conventional subdirectory inside `public/assets/`.
+
+| Method | Returns | Example |
+|---|---|---|
+| `Res.raw(fileName)` | `"raw/" + fileName` | `Res.raw("close.svg")` → `"raw/close.svg"` |
+| `Res.image(fileName)` | `"img/" + fileName` | `Res.image("avatar.png")` → `"img/avatar.png"` |
+| `Res.values(fileName)` | `"values/" + fileName` | `Res.values("strings.json")` → `"values/strings.json"` |
+| `Res.fonts(fileName)` | `"fonts/" + fileName` | `Res.fonts("inter.woff2")` → `"fonts/inter.woff2"` |
+
+The intended directory structure inside your project's `public/` folder:
+
+```
+public/
+└── assets/
+    ├── raw/        ← SVG icons and other raw files
+    ├── img/        ← Raster images (PNG, JPG, WebP)
+    ├── values/     ← JSON config / string tables
+    └── fonts/      ← Font files
+```
+
+### Local asset examples
+
+```svelte
+<script lang="ts">
+  import {
+    Icon, Image, ContentScale,
+    painterResource, Res,
+    Modifier
+  } from "@danielito1996/compose-svelted";
+</script>
+
+<!-- SVG icon from public/assets/raw/close.svg -->
+<Icon
+  painter={painterResource(Res.raw("close.svg"))}
+  tint="onSurface"
+  modifier={Modifier.size(20)}
+/>
+
+<!-- Raster image from public/assets/img/hero.jpg -->
+<Image
+  painter={painterResource(Res.image("hero.jpg"))}
+  contentScale={ContentScale.Crop}
+  contentDescription="Hero banner"
+  modifier={Modifier.fillMaxWidth().height(240)}
+/>
+
+<!-- Logo SVG (no tint — use Image to preserve color) -->
+<Image
+  painter={painterResource(Res.raw("logo.svg"))}
+  contentScale={ContentScale.Fit}
+  contentDescription="App logo"
+  modifier={Modifier.size(80)}
+/>
+```
+
+<Note>
+  `painterResource` simply concatenates `/assets/` with your path string — it performs no existence check at build time. If the file is missing from `public/assets/`, the browser will receive a 404 and the component will render a broken image or invisible icon.
+</Note>

@@ -1,0 +1,137 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "Compose Svelted",
+  "projectDescription": "A Jetpack Compose-inspired UI component library for Svelte that brings declarative layout, immutable modifiers, structural motion, and compose-like navigation to the web — without virtual DOM abstractions.",
+  "theme": "palm",
+  "primaryColor": "#fb4b1c",
+  "lightColor": "#fc732b",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/modifier",
+              "concepts/theme",
+              "concepts/alignment-arrangement"
+            ]
+          },
+          {
+            "group": "Layout Components",
+            "pages": [
+              "layouts/column-row-box",
+              "layouts/scaffold",
+              "layouts/lazy-lists"
+            ]
+          },
+          {
+            "group": "UI Components",
+            "pages": [
+              "components/surface-text",
+              "components/buttons",
+              "components/cards",
+              "components/text-fields",
+              "components/menus",
+              "components/image-icon"
+            ]
+          },
+          {
+            "group": "Motion",
+            "pages": [
+              "motion/animated-visibility",
+              "motion/animated-content",
+              "motion/animation-specs"
+            ]
+          },
+          {
+            "group": "Navigation",
+            "pages": [
+              "navigation/overview",
+              "navigation/nav-controller",
+              "navigation/nav-host"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/login-screen",
+              "examples/navigation-flow"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Jetpack Compose mental model mapped to Svelte — familiar API for Android developers",
+    "Immutable, chainable Modifier system for declarative layout and styling",
+    "Layout components: Column, Row, Box, Scaffold, LazyColumn, LazyRow",
+    "Structural motion with AnimatedVisibility and AnimatedContent",
+    "Compose-like navigation with NavController, NavHost, and back-stack management",
+    "Material 3-inspired theming with ColorScheme, Typography, Shapes, and Spacing tokens",
+    "Light/dark/system theme modes via ComposeTheme provider",
+    "Rich UI components: Button variants, Cards, TextFields, Menus, Icon, Image",
+    "ContentScale enum for image scaling (Crop, Fit, FillBounds, etc.)",
+    "Type-safe Alignment and Arrangement tokens",
+    "No virtual DOM abstractions — built directly on Svelte 5",
+    "CSS baseline contract for deterministic layout behavior"
+  ],
+  "publicApiSurface": [
+    "ComposeTheme",
+    "AppRoot",
+    "Column",
+    "Row",
+    "Box",
+    "Scaffold",
+    "Spacer",
+    "LazyColumn",
+    "LazyRow",
+    "Surface",
+    "Text",
+    "Button",
+    "TextButton",
+    "TonalButton",
+    "IconButton",
+    "ButtonWithIcon",
+    "OutlinedButton",
+    "OutlinedButtonWithIcon",
+    "CheckButton",
+    "OutlinedIconButton",
+    "Card",
+    "OutlinedCard",
+    "TextField",
+    "OutlinedTextField",
+    "DropdownMenu",
+    "DropdownMenuItem",
+    "Image",
+    "Icon",
+    "AnimatedVisibility",
+    "AnimatedContent",
+    "NavHost",
+    "Modifier",
+    "RoundedCornerShape",
+    "Alignment",
+    "Arrangement",
+    "ContentScale",
+    "ColorScheme",
+    "TextStyle",
+    "Density",
+    "rememberNavController()",
+    "composable()",
+    "fadeIn() / fadeOut() / scaleIn() / scaleOut() / slideIn() / slideOut()",
+    "fade() / scaleFade() / slideHorizontal()",
+    "painterResource()",
+    "Res.raw() / Res.image()"
+  ]
+}

@@ -1,0 +1,90 @@
+---
+title: "Scaffold: Full-Screen Screen Layout Structure"
+sidebarTitle: "Scaffold"
+description: "Structure any screen with Scaffold's named slots for a top bar, scrollable content area, bottom navigation bar, and a floating action button."
+---
+
+`Scaffold` provides the standard full-screen structure used in Material-style applications: a top bar pinned at the top, a bottom bar pinned at the bottom, a flexible content area that fills the space in between, and an optional floating action button (FAB) overlaid at a configurable corner. It mirrors the `Scaffold` composable from Jetpack Compose, letting you assemble complete screens from named slots rather than hand-rolling absolute positioning and flex layouts yourself.
+
+## Overview
+
+Scaffold renders as a full-height flex column. The `topBar` and `bottomBar` slots shrink to their natural height; the default content slot receives `flex: 1` so it always fills whatever vertical space remains. The FAB is layered in an absolutely positioned overlay that sits above all other slots without disrupting the document flow — it accepts pointer events only on the FAB element itself.
+
+## Props
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` applied to the outermost Scaffold container. Use `Modifier.fillMaxSize()` to ensure the Scaffold expands to fill its parent viewport, which is required for the content area to grow correctly.
+</ParamField>
+
+<ParamField path="contentPadding" type="number" default="16">
+  Padding in pixels applied uniformly around the default content slot. Set to `0` if you want your content to control its own padding, or if a `Column` / `LazyColumn` inside the slot handles spacing independently.
+</ParamField>
+
+<ParamField path="fabAlignment" type="BoxAlignment" default="Alignment.BottomEnd">
+  Controls where the floating action button is placed within the screen overlay. Accepts any `BoxAlignment` token — for example `Alignment.BottomEnd` (bottom-right, the Material default), `Alignment.BottomStart` (bottom-left), or `Alignment.BottomCenter`. The FAB always has a `16px` margin from the screen edges.
+</ParamField>
+
+## Slots
+
+| Slot name               | Description                                                                                 |
+|-------------------------|---------------------------------------------------------------------------------------------|
+| `topBar`                | Top app bar area. Renders at natural height, pinned above the content area.                 |
+| _(default)_             | Main scrollable or static content. Receives `flex: 1` and `display: flex; flex-direction: column` so children can use `fillMaxSize()`. |
+| `bottomBar`             | Bottom navigation bar area. Renders at natural height, pinned below the content area.       |
+| `floatingActionButton`  | FAB element. Positioned by `fabAlignment` over the entire screen via a pointer-events overlay. |
+
+## Example
+
+```svelte
+<script>
+  import { Scaffold, Row, Column, Button, Icon, Text } from 'compose-svelted';
+  import { Modifier } from 'compose-svelted/core';
+  import { Alignment } from 'compose-svelted/layouts';
+</script>
+
+<Scaffold
+  modifier={Modifier.fillMaxSize()}
+  fabAlignment={Alignment.BottomEnd}
+>
+  <svelte:fragment slot="topBar">
+    <Row
+      modifier={Modifier.fillMaxWidth().padding(16).background("surface")}
+      verticalAlignment={Alignment.CenterVertically}
+    >
+      <Text textStyle="titleLarge">My App</Text>
+    </Row>
+  </svelte:fragment>
+
+  <!-- Main content -->
+  <Column modifier={Modifier.fillMaxSize()}>
+    <Text>Content goes here</Text>
+  </Column>
+
+  <svelte:fragment slot="bottomBar">
+    <Row modifier={Modifier.fillMaxWidth().padding(8).background("surface")}>
+      <Text>Nav bar</Text>
+    </Row>
+  </svelte:fragment>
+
+  <svelte:fragment slot="floatingActionButton">
+    <Button onClick={() => {}}>
+      <Icon
+        painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/plus.svg"
+        modifier={Modifier.size(24)}
+      />
+    </Button>
+  </svelte:fragment>
+</Scaffold>
+```
+
+<Note>
+  Direct children of the default content slot should use `Modifier.fillMaxSize()` (or `Modifier.fillMaxWidth()` / `Modifier.fillMaxHeight()`) to expand correctly. The content wrapper is a flex column with `flex: 1` and `min-height: 0`, which means a child `Column` or `LazyColumn` with `fillMaxSize()` will grow to exactly fill the available area between the top and bottom bars.
+</Note>
+
+<Tip>
+  Set `contentPadding={0}` when the content slot contains a `LazyColumn` or a full-bleed `Image` — the list or image can then control its own internal padding without fighting the Scaffold's default `16px` inset.
+</Tip>
+
+<Warning>
+  Scaffold sets `overflow: hidden` on its outer container, so content that intentionally overflows (e.g. a bottom sheet or a dropdown menu) must be rendered outside the Scaffold or via a portal-style mechanism. Long scrollable content should live inside a `LazyColumn` or a `Column` with `Modifier.verticalScroll()` inside the default slot — not on the Scaffold itself.
+</Warning>

@@ -1,0 +1,117 @@
+---
+title: "AnimatedContent: Animate Between State Changes"
+sidebarTitle: "AnimatedContent"
+description: "Smoothly transition between different content states using CSS-based enter and exit animations driven by a reactive target state key."
+---
+
+`AnimatedContent` watches a `targetState` key and plays a paired exit/enter animation whenever that key changes. When the key updates, the current content fades (or scales, or slides) out over the configured duration; once the timeout elapses the slot content re-renders for the new state and fades back in. This makes it straightforward to animate between tabs, wizard steps, or any other discrete content states without managing transition logic yourself.
+
+<Note>
+  `AnimatedContent` is the same component `NavHost` uses internally to animate route transitions. You can use it directly whenever you need the same behaviour outside of a navigation context.
+</Note>
+
+## Props
+
+<ParamField path="targetState" type="any" required>
+  A value that uniquely identifies the currently active content. `AnimatedContent` compares this to its internally tracked `currentKey` on every reactive update. When they differ, the exit animation plays, the key is swapped after `transition.duration` milliseconds, and the enter animation plays on the new content.
+</ParamField>
+
+<ParamField path="transition" type="ContentTransition" default="fade(300)">
+  A `ContentTransition` object describing the CSS styles for the entered state, the exiting state, and the duration of the transition. Defaults to a 300 ms opacity fade. Use any of the built-in factory functions or supply a custom object.
+</ParamField>
+
+## ContentTransition type
+
+```ts
+type ContentTransition = {
+  enter: string;   // CSS style string applied while content is visible
+  exit: string;    // CSS style string applied while content is leaving
+  duration: number; // Transition duration in ms
+};
+```
+
+## Available ContentTransition factories
+
+Import all factories directly from `@danielito1996/compose-svelted`.
+
+| Factory | Effect | Duration |
+|---|---|---|
+| `fade(duration?)` | Opacity `0 → 1` | 300 ms (default) |
+| `scaleFade()` | Scale `0.95 → 1` + opacity `0 → 1` | 220 ms |
+| `slideHorizontal()` | Slide in from the right (`translateX`) + opacity `0 → 1` | 300 ms |
+
+### Style values applied by each factory
+
+**`fade(duration?)`**
+- `enter`: `"opacity: 1;"`
+- `exit`: `"opacity: 0;"`
+
+**`scaleFade()`**
+- `enter`: `"transform: scale(1); opacity: 1;"`
+- `exit`: `"transform: scale(0.95); opacity: 0;"`
+
+**`slideHorizontal()`**
+- `enter`: `"transform: translateX(0); opacity: 1;"`
+- `exit`: `"transform: translateX(-100%); opacity: 0;"`
+
+## Usage
+
+```svelte
+<script lang="ts">
+  import {
+    AnimatedContent,
+    fade,
+    scaleFade,
+    slideHorizontal
+  } from "@danielito1996/compose-svelted";
+
+  let currentTab = "home";
+</script>
+
+<!-- Scale + fade transition between tabs -->
+<AnimatedContent targetState={currentTab} transition={scaleFade()}>
+  {#if currentTab === "home"}
+    <HomeScreen />
+  {:else if currentTab === "profile"}
+    <ProfileScreen />
+  {/if}
+</AnimatedContent>
+```
+
+To use a simple opacity fade with a custom duration:
+
+```svelte
+<AnimatedContent targetState={currentTab} transition={fade(200)}>
+  {#if currentTab === "home"}
+    <HomeScreen />
+  {:else if currentTab === "profile"}
+    <ProfileScreen />
+  {/if}
+</AnimatedContent>
+```
+
+To animate a horizontal slide (useful for wizard steps or paginated views):
+
+```svelte
+<AnimatedContent targetState={step} transition={slideHorizontal()}>
+  {#if step === 1}
+    <StepOne />
+  {:else if step === 2}
+    <StepTwo />
+  {:else}
+    <StepThree />
+  {/if}
+</AnimatedContent>
+```
+
+## How it works
+
+`AnimatedContent` wraps its slot in two nested `<div>` elements. The outer container uses `position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; flex-direction: column` so that children can safely use `height: 100%` or `flex: 1`. The inner container receives inline `transition` styles for `opacity` and `transform` using `transition.duration`, and switches between `transition.exit` and `transition.enter` style strings as the `exiting` flag toggles.
+
+When `targetState` changes:
+1. `exiting` is set to `true` — the inner container receives `transition.exit` styles.
+2. After `transition.duration` ms, `currentKey` is updated to the new `targetState` and `exiting` is reset to `false` — the slot re-renders and the inner container receives `transition.enter` styles.
+
+<Tip>
+  Because `AnimatedContent` re-renders the slot content after the exit animation completes, Svelte's `{#if}` blocks inside the slot respond to the already-updated `targetState`. Make sure your slot content branches on `targetState` (or a variable derived from it) so the correct screen renders after the swap.
+</Tip>

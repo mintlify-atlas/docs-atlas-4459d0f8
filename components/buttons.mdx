@@ -1,0 +1,398 @@
+---
+title: "Button Components: All Button Variants"
+sidebarTitle: "Buttons"
+description: "Explore every button variant in Compose Svelted — filled, text, tonal, outlined, icon, and check buttons with full props and code examples."
+---
+
+Compose Svelted ships nine button variants that cover the full Material 3 button taxonomy. Every variant shares the same interaction model — an `onClick` handler, a `modifier` for layout, and theme-driven color resolution — but each has a distinct visual character suited to a different role in the hierarchy. Filled buttons are for primary actions, text buttons are for low-emphasis actions, tonal buttons bridge the two, outlined buttons are for secondary actions that need clear affordance, and icon buttons keep actions compact when labels are unnecessary.
+
+## Button (Filled)
+
+`Button` is the highest-emphasis action component. It renders a filled pill with a background drawn from the theme's `primary` color by default, making it the most prominent interactive element on a surface. Use it for the single most important action on a screen.
+
+<ParamField path="onClick" type="() => void" default="() => {}">
+  Callback invoked when the button is pressed.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` for sizing, padding, alignment, and other layout properties.
+</ParamField>
+
+<ParamField path="color" type="ColorToken | string" default="primary">
+  Background fill color. Accepts a `ColorToken` from the active scheme or a direct CSS color string.
+</ParamField>
+
+<ParamField path="onColor" type="ColorToken | string" default="onPrimary">
+  Foreground (content) color drawn on top of `color`. Should remain accessible against the chosen background.
+</ParamField>
+
+<ParamField path="shape" type="none | extraSmall | small | medium | large" default="large">
+  Corner radius token pulled from the Material 3 shape scale via `--md-sys-shape-{shape}`. `large` produces the pill-like appearance typical of MD3 filled buttons.
+</ParamField>
+
+<ParamField path="elevation" type="level0 | level1 | level2 | level3 | level4" default="level1">
+  Shadow depth token resolved via `--md-sys-elevation-{elevation}`. Hover interactions automatically promote to `level2`.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { Button, Text, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<Button onClick={() => console.log("submitted")} modifier={Modifier.fillMaxWidth()}>
+  <Text>Submit</Text>
+</Button>
+
+<!-- Custom colors -->
+<Button color="tertiary" onColor="onTertiary" onClick={() => {}}>
+  <Text>Tertiary Action</Text>
+</Button>
+
+<!-- Flat (no shadow) -->
+<Button elevation="level0" onClick={() => {}}>
+  <Text>Flat Button</Text>
+</Button>
+```
+
+---
+
+## TextButton
+
+`TextButton` is a text-only, low-emphasis button with no background fill and no border. It is ideal for dismissive actions (e.g. "Cancel"), secondary links, or anywhere the action is genuinely optional. Its content color defaults to the theme `primary`.
+
+<ParamField path="onClick" type="() => void" default="() => {}">
+  Callback invoked on press.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  Chainable `Modifier` for layout customization.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { TextButton, Text, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<TextButton onClick={() => cancel()}>
+  <Text>Cancel</Text>
+</TextButton>
+
+<TextButton onClick={() => openDocs()} modifier={Modifier.padding(8)}>
+  <Text>View Docs</Text>
+</TextButton>
+```
+
+<Note>
+  `TextButton`'s source file is currently a stub in the repository. Its public API mirrors `Button` but without `color`, `onColor`, `shape`, or `elevation` props — content inherits from the parent surface.
+</Note>
+
+---
+
+## TonalButton
+
+`TonalButton` is a medium-emphasis filled button that uses the `secondaryContainer` / `onSecondaryContainer` color pair by default. It occupies the middle tier between `Button` (primary) and `TextButton` (no background), making it suitable for secondary but still important actions.
+
+<ParamField path="onClick" type="() => void" default="() => {}">
+  Callback invoked on press.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  Chainable `Modifier` for layout customization.
+</ParamField>
+
+<ParamField path="color" type="ColorToken | string" default="secondaryContainer">
+  Background fill. Defaults to the `secondaryContainer` token for the characteristic tonal look.
+</ParamField>
+
+<ParamField path="onColor" type="ColorToken | string" default="onSecondaryContainer">
+  Foreground color drawn over `color`.
+</ParamField>
+
+<ParamField path="shape" type="none | extraSmall | small | medium | large" default="large">
+  Corner radius token from the Material 3 shape scale.
+</ParamField>
+
+<ParamField path="elevation" type="level0 | level1 | level2 | level3 | level4" default="level0">
+  Tonal buttons are flat (`level0`) by default, relying on color contrast rather than shadow for depth.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { TonalButton, Text, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<TonalButton onClick={() => save()} modifier={Modifier.fillMaxWidth()}>
+  <Text>Save Draft</Text>
+</TonalButton>
+```
+
+---
+
+## OutlinedButton
+
+`OutlinedButton` renders a button with a visible border and no background fill, communicating a secondary action that needs clear affordance without the weight of a filled button. It is well-suited for actions like "Learn More", "Edit", or "Share" that are important but not primary.
+
+<ParamField path="onClick" type="() => void" default="() => {}">
+  Callback invoked on press.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  Chainable `Modifier` for layout customization.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { OutlinedButton, Text } from "@danielito1996/compose-svelted";
+</script>
+
+<OutlinedButton onClick={() => openDetails()}>
+  <Text>Learn More</Text>
+</OutlinedButton>
+```
+
+<Note>
+  `OutlinedButton`'s source file is currently a stub. Its border color resolves to the theme `outline` token and its content color resolves to `primary`.
+</Note>
+
+---
+
+## ButtonWithIcon
+
+`ButtonWithIcon` is a filled button that provides a dedicated `leadingIcon` slot alongside the default content slot. This mirrors the Material 3 "button with icon" pattern — an icon to the left of the label that reinforces the action's meaning.
+
+<ParamField path="onClick" type="() => void" default="() => {}">
+  Callback invoked on press.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  Chainable `Modifier` for layout customization.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { ButtonWithIcon, Icon, Text, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<ButtonWithIcon onClick={() => share()}>
+  <Icon
+    slot="leadingIcon"
+    painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/share-variant.svg"
+    modifier={Modifier.size(18)}
+  />
+  <Text>Share</Text>
+</ButtonWithIcon>
+```
+
+---
+
+## OutlinedButtonWithIcon
+
+`OutlinedButtonWithIcon` combines the outlined style of `OutlinedButton` with a `leadingIcon` slot, following the same icon-leading-label pattern in a lower-emphasis visual style.
+
+<ParamField path="onClick" type="() => void" default="() => {}">
+  Callback invoked on press.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  Chainable `Modifier` for layout customization.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { OutlinedButtonWithIcon, Icon, Text, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<OutlinedButtonWithIcon onClick={() => exportData()}>
+  <Icon
+    slot="leadingIcon"
+    painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/export.svg"
+    modifier={Modifier.size(18)}
+  />
+  <Text>Export</Text>
+</OutlinedButtonWithIcon>
+```
+
+---
+
+## IconButton
+
+`IconButton` is a compact, icon-only tap target. It renders a square/circular interactive area with no label, making it ideal for toolbars, action bars, and anywhere space is constrained. Place an `Icon` or any 24 dp visual inside its default slot.
+
+<ParamField path="onClick" type="() => void" default="() => {}">
+  Callback invoked on press.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  Chainable `Modifier` for sizing and positioning.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { IconButton, Icon, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<!-- Hamburger menu toggle -->
+<IconButton onClick={() => toggleMenu()}>
+  <Icon
+    painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/menu.svg"
+    modifier={Modifier.size(24)}
+  />
+</IconButton>
+
+<!-- Back navigation -->
+<IconButton onClick={() => goBack()}>
+  <Icon
+    painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/arrow-left.svg"
+    modifier={Modifier.size(24)}
+  />
+</IconButton>
+```
+
+---
+
+## OutlinedIconButton
+
+`OutlinedIconButton` wraps the same icon-only interaction as `IconButton` but adds a visible border, providing additional affordance in surfaces where the background offers little contrast.
+
+<ParamField path="onClick" type="() => void" default="() => {}">
+  Callback invoked on press.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  Chainable `Modifier` for sizing and positioning.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { OutlinedIconButton, Icon, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<OutlinedIconButton onClick={() => openSearch()}>
+  <Icon
+    painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/magnify.svg"
+    modifier={Modifier.size(24)}
+  />
+</OutlinedIconButton>
+```
+
+---
+
+## CheckButton
+
+`CheckButton` is a stateful toggle button that combines a visual checkbox indicator with arbitrary slot content. When `checked` is `true`, its background resolves to the theme `primary` color and the inner check mark animates in via a scale transition. When `false`, the background falls back to `surfaceVariant`.
+
+<ParamField path="checked" type="boolean">
+  The current checked state. This is a controlled prop — you own the state and pass it back in via `onCheckedChange`.
+</ParamField>
+
+<ParamField path="onCheckedChange" type="(value: boolean) => void">
+  Called with the next state whenever the user clicks the button. Update your own state variable in this handler.
+</ParamField>
+
+<ParamField path="enabled" type="boolean" default="true">
+  When `false`, click interactions are suppressed and the button is rendered at reduced opacity.
+</ParamField>
+
+<ParamField path="shape" type="Shape" default="RoundedCornerShape(8)">
+  Border radius of the button container, expressed as a `Shape` instance. Defaults to slightly rounded corners.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  Chainable `Modifier` for layout customization.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { CheckButton, Text, Modifier } from "@danielito1996/compose-svelted";
+
+  let agreed = false;
+</script>
+
+<CheckButton
+  checked={agreed}
+  onCheckedChange={(v) => (agreed = v)}
+  modifier={Modifier.fillMaxWidth()}
+>
+  <Text textStyle="bodyMedium">I agree to the terms and conditions</Text>
+</CheckButton>
+
+<CheckButton
+  checked={agreed}
+  onCheckedChange={(v) => (agreed = v)}
+  enabled={false}
+>
+  <Text textStyle="bodySmall">Disabled option</Text>
+</CheckButton>
+```
+
+<Tip>
+  The check indicator inside `CheckButton` uses `AnimatedVisibility` with `scaleIn` / `scaleOut` transitions. The animation runs automatically — no extra configuration needed.
+</Tip>
+
+---
+
+## All variants at a glance
+
+```svelte
+<script lang="ts">
+  import {
+    Button, TextButton, TonalButton, OutlinedButton,
+    ButtonWithIcon, OutlinedButtonWithIcon,
+    IconButton, OutlinedIconButton, CheckButton,
+    Icon, Text, Modifier
+  } from "@danielito1996/compose-svelted";
+
+  let checked = false;
+</script>
+
+<!-- Filled -->
+<Button onClick={() => {}}>
+  <Text>Filled Button</Text>
+</Button>
+
+<!-- Text -->
+<TextButton onClick={() => {}}>
+  <Text>Text Button</Text>
+</TextButton>
+
+<!-- Tonal -->
+<TonalButton onClick={() => {}}>
+  <Text>Tonal Button</Text>
+</TonalButton>
+
+<!-- Outlined -->
+<OutlinedButton onClick={() => {}}>
+  <Text>Outlined Button</Text>
+</OutlinedButton>
+
+<!-- Filled with icon -->
+<ButtonWithIcon onClick={() => {}}>
+  <Icon
+    slot="leadingIcon"
+    painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/plus.svg"
+    modifier={Modifier.size(18)}
+  />
+  <Text>Add Item</Text>
+</ButtonWithIcon>
+
+<!-- Icon-only -->
+<IconButton onClick={() => {}}>
+  <Icon
+    painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/heart.svg"
+    modifier={Modifier.size(24)}
+  />
+</IconButton>
+
+<!-- Outlined icon-only -->
+<OutlinedIconButton onClick={() => {}}>
+  <Icon
+    painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/bookmark.svg"
+    modifier={Modifier.size(24)}
+  />
+</OutlinedIconButton>
+
+<!-- Check / toggle -->
+<CheckButton checked={checked} onCheckedChange={(v) => (checked = v)}>
+  <Text>Enable notifications</Text>
+</CheckButton>
+```

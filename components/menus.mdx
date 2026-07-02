@@ -1,0 +1,186 @@
+---
+title: "DropdownMenu: Contextual Menu Component"
+sidebarTitle: "Menus"
+description: "Learn how to build contextual dropdown menus in Compose Svelted using DropdownMenu and DropdownMenuItem with full props and usage examples."
+---
+
+`DropdownMenu` and `DropdownMenuItem` are the building blocks for contextual menus in Compose Svelted. A `DropdownMenu` provides the floating panel container and visibility control, while `DropdownMenuItem` represents each selectable entry inside it. Both components mirror the Jetpack Compose `DropdownMenu` / `DropdownMenuItem` API — the menu is anchored to a trigger element and shown or hidden based on an `expanded` prop that you control as reactive state.
+
+<Note>
+  The `DropdownMenu` and `DropdownMenuItem` source files are currently stubs in the repository. The documentation below describes the intended public API modelled after the Jetpack Compose equivalents and the rest of the Compose Svelted component contract. When the implementations land, the props and slot structure below will reflect the actual source.
+</Note>
+
+## DropdownMenu
+
+`DropdownMenu` is the floating container that holds menu items. It is invisible when `expanded` is `false` and animates into view when `expanded` becomes `true`. The menu is typically anchored to a trigger button — wrap both the trigger and the `DropdownMenu` in a `Box` so they share the same layout origin, or use an absolute-positioned wrapper.
+
+<ParamField path="expanded" type="boolean">
+  Controls whether the dropdown panel is visible. Set to `true` to open the menu, `false` to close it. You own this state.
+</ParamField>
+
+<ParamField path="onDismissRequest" type="() => void">
+  Called when the user clicks outside the menu or presses Escape, signalling that the menu should close. Update your `expanded` state to `false` inside this handler.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` applied to the dropdown panel. Useful for setting a minimum width or max height.
+</ParamField>
+
+---
+
+## DropdownMenuItem
+
+`DropdownMenuItem` is a single, tappable row inside a `DropdownMenu`. Each item invokes an `onClick` handler and renders its slot content — typically a `Text` label and an optional leading `Icon`.
+
+<ParamField path="onClick" type="() => void" default="() => {}">
+  Callback invoked when the user selects this item. Typically closes the menu and performs the associated action.
+</ParamField>
+
+<ParamField path="enabled" type="boolean" default="true">
+  When `false`, the item is non-interactive and rendered at reduced opacity.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` for sizing and padding the item row.
+</ParamField>
+
+---
+
+## Basic usage
+
+The recommended pattern is to keep an `expanded` boolean in your component state, open the menu on button press, and close it inside each `DropdownMenuItem`'s `onClick` and in `onDismissRequest`.
+
+```svelte
+<script lang="ts">
+  import {
+    Box, Button, Text, Icon,
+    DropdownMenu, DropdownMenuItem,
+    Modifier, Alignment
+  } from "@danielito1996/compose-svelted";
+
+  let menuOpen = false;
+
+  function handleSelect(option: string) {
+    console.log("Selected:", option);
+    menuOpen = false;
+  }
+</script>
+
+<Box contentAlignment={Alignment.TopStart}>
+  <!-- Anchor / trigger -->
+  <Button onClick={() => (menuOpen = !menuOpen)}>
+    <Text>Options</Text>
+  </Button>
+
+  <!-- Dropdown panel -->
+  <DropdownMenu
+    expanded={menuOpen}
+    onDismissRequest={() => (menuOpen = false)}
+  >
+    <DropdownMenuItem onClick={() => handleSelect("edit")}>
+      <Text>Edit</Text>
+    </DropdownMenuItem>
+
+    <DropdownMenuItem onClick={() => handleSelect("duplicate")}>
+      <Text>Duplicate</Text>
+    </DropdownMenuItem>
+
+    <DropdownMenuItem onClick={() => handleSelect("delete")}>
+      <Text>Delete</Text>
+    </DropdownMenuItem>
+  </DropdownMenu>
+</Box>
+```
+
+---
+
+## Menu with icons
+
+Add a leading `Icon` inside each `DropdownMenuItem` slot to match the Material 3 icon-menu pattern:
+
+```svelte
+<script lang="ts">
+  import {
+    Box, IconButton, Icon, Text,
+    DropdownMenu, DropdownMenuItem,
+    Modifier, Alignment
+  } from "@danielito1996/compose-svelted";
+
+  let menuOpen = false;
+</script>
+
+<Box contentAlignment={Alignment.TopEnd}>
+  <IconButton onClick={() => (menuOpen = true)}>
+    <Icon
+      painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/dots-vertical.svg"
+      modifier={Modifier.size(24)}
+    />
+  </IconButton>
+
+  <DropdownMenu
+    expanded={menuOpen}
+    onDismissRequest={() => (menuOpen = false)}
+  >
+    <DropdownMenuItem onClick={() => { share(); menuOpen = false; }}>
+      <Icon
+        painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/share-variant.svg"
+        modifier={Modifier.size(18)}
+      />
+      <Text>Share</Text>
+    </DropdownMenuItem>
+
+    <DropdownMenuItem onClick={() => { copyLink(); menuOpen = false; }}>
+      <Icon
+        painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/link.svg"
+        modifier={Modifier.size(18)}
+      />
+      <Text>Copy link</Text>
+    </DropdownMenuItem>
+
+    <DropdownMenuItem enabled={false} onClick={() => {}}>
+      <Icon
+        painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/delete.svg"
+        modifier={Modifier.size(18)}
+      />
+      <Text>Delete (disabled)</Text>
+    </DropdownMenuItem>
+  </DropdownMenu>
+</Box>
+```
+
+---
+
+## Conditional items
+
+Because `DropdownMenu` uses a slot, you can conditionally render items with standard Svelte control flow:
+
+```svelte
+<script lang="ts">
+  import {
+    DropdownMenu, DropdownMenuItem, Text
+  } from "@danielito1996/compose-svelted";
+
+  let menuOpen = false;
+  let isOwner = true;
+</script>
+
+<DropdownMenu expanded={menuOpen} onDismissRequest={() => (menuOpen = false)}>
+  <DropdownMenuItem onClick={() => { view(); menuOpen = false; }}>
+    <Text>View</Text>
+  </DropdownMenuItem>
+
+  {#if isOwner}
+    <DropdownMenuItem onClick={() => { edit(); menuOpen = false; }}>
+      <Text>Edit</Text>
+    </DropdownMenuItem>
+
+    <DropdownMenuItem onClick={() => { remove(); menuOpen = false; }}>
+      <Text>Remove</Text>
+    </DropdownMenuItem>
+  {/if}
+</DropdownMenu>
+```
+
+<Tip>
+  Always close the menu inside every `DropdownMenuItem`'s `onClick` handler and inside `onDismissRequest`. Forgetting one of these will leave the menu open after selection or after an outside click.
+</Tip>

@@ -1,0 +1,134 @@
+---
+title: "LazyColumn and LazyRow: Virtualized List Rendering"
+sidebarTitle: "Lazy Lists"
+description: "Render large arrays efficiently with LazyColumn and LazyRow — virtualized containers that only mount visible items plus a small overscan buffer."
+---
+
+When a list grows beyond a handful of items, mounting every element in the DOM becomes expensive — layout thrashing, slow initial render, and unnecessary memory pressure all compound quickly. `LazyColumn` and `LazyRow` solve this by virtualizing their item lists: only the items currently visible in the scrollport (plus a small overscan buffer) are mounted at any one time. The rest of the scroll area is represented by a single spacer div that preserves accurate scroll height without rendering real nodes.
+
+Both components mirror the `LazyColumn` and `LazyRow` composables from Jetpack Compose. You pass an `items` array and a slotted template; the component handles windowing, scroll tracking, and height estimation automatically.
+
+---
+
+## LazyColumn
+
+`LazyColumn` is a virtualized scrollable column. It renders a vertical list of items where only the visible window — plus `overscan = 3` items above and below — is in the DOM at any time. The total scroll height is maintained by a full-height spacer so the scrollbar behaves exactly as if all items were rendered.
+
+**Height estimation:** On first render the component mounts the very first item as a _probe_ element, measures its `offsetHeight`, and uses that value as the uniform estimated height for all items. The estimate is updated once, after the first tick, and is then held constant for the session.
+
+<ParamField path="items" type="any[]" default="[]">
+  The array of data items to render. Each element is passed to the default slot as `let:item`. The component re-virtualizes whenever this array reference changes.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` applied to the outer scrollable container. Use `Modifier.fillMaxSize()` or `Modifier.fillMaxHeight()` to give the list a bounded height — virtualization only activates when the container has a constrained viewport.
+</ParamField>
+
+<ParamField path="horizontalAlignment" type="HorizontalAlignment" default="Alignment.Start">
+  Cross-axis alignment for items along the horizontal axis. Accepts `Alignment.Start`, `Alignment.CenterHorizontally`, or `Alignment.End`.
+</ParamField>
+
+<ParamField path="verticalArrangement" type="ArrangementValue" default="Arrangement.Start">
+  Controls the gap between rendered items using the `gap` CSS property. Accepts `Arrangement.Start` (no gap) or `Arrangement.spacedBy(px)` for a uniform gap. Static distribution tokens like `Arrangement.SpaceBetween` are not meaningful in a virtualized list and should not be used here.
+</ParamField>
+
+```svelte
+<script>
+  import { LazyColumn, Surface, Text } from 'compose-svelted';
+  import { Modifier } from 'compose-svelted/core';
+  import { Arrangement } from 'compose-svelted/layouts';
+
+  const messages = [
+    { id: 1, text: 'Hello world' },
+    { id: 2, text: 'How are you?' },
+    // ... hundreds more
+  ];
+</script>
+
+<LazyColumn
+  items={messages}
+  modifier={Modifier.fillMaxSize()}
+  verticalArrangement={Arrangement.spacedBy(8)}
+  let:item
+>
+  <Surface modifier={Modifier.fillMaxWidth().padding(12)}>
+    <Text>{item.text}</Text>
+  </Surface>
+</LazyColumn>
+```
+
+<Tip>
+  Always give `LazyColumn` a bounded height via `Modifier.fillMaxSize()`, `Modifier.fillMaxHeight()`, or `Modifier.height(px)`. If the container can grow unboundedly, the scroll viewport is effectively infinite and virtualization will never discard off-screen items.
+</Tip>
+
+---
+
+## LazyRow
+
+`LazyRow` is the horizontal counterpart to `LazyColumn`. It renders a horizontal scrollable list using the same windowing strategy — only the visible horizontal window plus overscan items are in the DOM, while a spacer preserves the full scroll width.
+
+<ParamField path="items" type="any[]" default="[]">
+  The array of data items to render. Each element is passed to the default slot as `let:item`.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` applied to the outer scrollable container. Constrain the width with `Modifier.fillMaxWidth()` or `Modifier.width(px)` to activate virtualization.
+</ParamField>
+
+<ParamField path="horizontalAlignment" type="HorizontalAlignment" default="Alignment.Start">
+  Cross-axis alignment for items. Accepts `Alignment.Start`, `Alignment.CenterHorizontally`, or `Alignment.End`.
+</ParamField>
+
+<ParamField path="verticalArrangement" type="ArrangementValue" default="Arrangement.Start">
+  Controls the gap between rendered items. Use `Arrangement.spacedBy(px)` for a uniform horizontal gap between cards or chips.
+</ParamField>
+
+```svelte
+<script>
+  import { LazyRow, Surface, Text } from 'compose-svelted';
+  import { Modifier } from 'compose-svelted/core';
+  import { Arrangement, Alignment } from 'compose-svelted/layouts';
+
+  const categories = [
+    { id: 1, label: 'Technology' },
+    { id: 2, label: 'Design' },
+    { id: 3, label: 'Science' },
+    // ... many more
+  ];
+</script>
+
+<LazyRow
+  items={categories}
+  modifier={Modifier.fillMaxWidth()}
+  verticalArrangement={Arrangement.spacedBy(8)}
+  horizontalAlignment={Alignment.CenterHorizontally}
+  let:item
+>
+  <Surface modifier={Modifier.padding(12)}>
+    <Text textStyle="labelMedium">{item.label}</Text>
+  </Surface>
+</LazyRow>
+```
+
+---
+
+## Virtualization caveats
+
+<Warning>
+  Both `LazyColumn` and `LazyRow` use a **uniform height-estimation strategy** based on the first rendered item. If your items vary significantly in height (e.g. expandable cards, variable-length text blocks), the scroll position may jump or items may overlap when the actual rendered height diverges from the estimate. Test with a representative sample of your real data before shipping.
+</Warning>
+
+The overscan buffer is fixed at **3 items** on each side of the visible window. This means up to `visibleCount + 6` items are in the DOM at any given scroll position, which strikes a balance between smooth scrolling and minimal DOM size for typical Material-density lists.
+
+---
+
+## Column vs LazyColumn: when to use which
+
+| Scenario | Use |
+|---|---|
+| Small, static list (< ~20 items) | `Column` — simpler, no virtualization overhead |
+| Items with highly variable or dynamic heights | `Column` with `Modifier.verticalScroll()` — avoids height-estimation issues |
+| Long data-driven list (20+ items) | `LazyColumn` — only mounts visible items |
+| Infinite / paginated feed | `LazyColumn` — combine with a scroll-end listener for pagination |
+| Horizontal card carousel | `LazyRow` for many items; plain `Row` with `Modifier.horizontalScroll()` for a handful |
+| Fixed layout where all items must be in the DOM (e.g. for CSS animations across all items) | `Column` / `Row` — virtualization unmounts off-screen items |

@@ -1,0 +1,104 @@
+---
+title: "AnimatedVisibility: Animate Enter and Exit"
+sidebarTitle: "AnimatedVisibility"
+description: "Show or hide content with configurable enter and exit animations. Supports fade, scale, and directional slide transitions out of the box."
+---
+
+`AnimatedVisibility` wraps any child content and plays an enter animation when `visible` becomes `true` and an exit animation when it becomes `false`. The DOM node stays alive for the full duration of the exit animation before being removed, ensuring the transition always completes cleanly. Animations are driven by Tailwind CSS utility classes applied in a `requestAnimationFrame` cycle so the browser always paints the initial state before transitioning.
+
+## Props
+
+<ParamField path="visible" type="boolean" required>
+  Controls whether the child content is rendered and visible. Setting this to `true` mounts the node and plays the `enter` animation; setting it back to `false` plays the `exit` animation and then removes the node from the DOM.
+</ParamField>
+
+<ParamField path="enter" type="AnimationSpec" default="fadeIn()">
+  The animation played when `visible` transitions from `false` to `true`. Defaults to a 280 ms opacity fade-in. Pass any `AnimationSpec` factory — `fadeIn`, `scaleIn`, `slideIn`, or a custom object — to change the effect.
+</ParamField>
+
+<ParamField path="exit" type="AnimationSpec" default="fadeOut()">
+  The animation played when `visible` transitions from `true` to `false`. Defaults to a 220 ms opacity fade-out. The child node is kept in the DOM until this animation finishes, then removed.
+</ParamField>
+
+## Available AnimationSpec factories
+
+Import all factories directly from `@danielito1996/compose-svelted`.
+
+| Factory | Effect | Default duration |
+|---|---|---|
+| `fadeIn(duration?)` | Opacity `0 → 1` | 280 ms |
+| `fadeOut(duration?)` | Opacity `1 → 0` | 220 ms |
+| `scaleIn(duration?)` | Scale `0.95 → 1` + opacity `0 → 1` | 280 ms |
+| `scaleOut(duration?)` | Scale `1 → 0.95` + opacity `1 → 0` | 220 ms |
+| `slideIn(duration?, direction?)` | Translate offset → 0 + opacity `0 → 1` | 280 ms |
+| `slideOut(duration?, direction?)` | Translate 0 → offset + opacity `1 → 0` | 220 ms |
+
+The `direction` parameter on `slideIn` and `slideOut` accepts `"left"`, `"right"`, `"up"`, or `"down"` and defaults to `"right"`.
+
+## Usage
+
+### Basic fade (default)
+
+```svelte
+<script lang="ts">
+  import { AnimatedVisibility, fadeIn, fadeOut } from "@danielito1996/compose-svelted";
+
+  let showPanel = false;
+</script>
+
+<AnimatedVisibility visible={showPanel}>
+  <Surface modifier={Modifier.padding(16)}>
+    <Text>I fade in and out</Text>
+  </Surface>
+</AnimatedVisibility>
+```
+
+### Scale animation
+
+```svelte
+<script lang="ts">
+  import { AnimatedVisibility, scaleIn, scaleOut } from "@danielito1996/compose-svelted";
+
+  let showPanel = false;
+</script>
+
+<AnimatedVisibility
+  visible={showPanel}
+  enter={scaleIn(300)}
+  exit={scaleOut(200)}
+>
+  <Card>...</Card>
+</AnimatedVisibility>
+```
+
+### Slide from bottom
+
+```svelte
+<script lang="ts">
+  import { AnimatedVisibility, slideIn, slideOut } from "@danielito1996/compose-svelted";
+
+  let showPanel = false;
+</script>
+
+<AnimatedVisibility
+  visible={showPanel}
+  enter={slideIn(280, "up")}
+  exit={slideOut(220, "down")}
+>
+  <Surface>Bottom sheet content</Surface>
+</AnimatedVisibility>
+```
+
+## How it works
+
+Internally, `AnimatedVisibility` maintains a `shouldRender` boolean that tracks whether the child `<div>` exists in the DOM — separate from the `visible` prop. When `visible` becomes `true`, `shouldRender` is set immediately and the `enter` animation classes are applied. A `requestAnimationFrame` callback then swaps to the destination classes so the browser has time to paint the starting state first, producing a smooth CSS transition.
+
+When `visible` becomes `false`, the `exit` animation plays via the same two-step class swap, and a `setTimeout` equal to `exit.duration` sets `shouldRender = false` — removing the node only after the transition completes.
+
+<Note>
+  `AnimatedVisibility` relies on Tailwind CSS utility classes for its transitions. Ensure Tailwind is configured in your consumer app and that its content scan includes any paths that reference these classes, otherwise the transition classes may be purged.
+</Note>
+
+<Tip>
+  Mix `slideIn` / `slideOut` directions to create directional context — for example, slide content in from the right when moving forward and from the left when going back, giving users a sense of spatial navigation.
+</Tip>

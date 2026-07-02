@@ -1,0 +1,161 @@
+---
+title: "Column, Row, and Box: Core Layout Containers"
+sidebarTitle: "Column, Row, Box"
+description: "Master Column, Row, Box, and Spacer — the four fundamental layout primitives in Compose Svelted that mirror Jetpack Compose's core containers."
+---
+
+Column, Row, and Box are the three foundational layout containers in Compose Svelted, directly mirroring their Jetpack Compose counterparts. Column stacks children vertically, Row arranges them horizontally, and Box layers them on top of each other in a single stacking cell. Together they cover the vast majority of real-world UI layouts without reaching for raw CSS. A fourth helper, `Spacer`, works alongside all three to push siblings apart or fill remaining space.
+
+## Column
+
+`Column` is a vertical flex container. Children are stacked along the main (vertical) axis and aligned on the cross (horizontal) axis. It maps directly to a `display: flex; flex-direction: column` div, but exposes Jetpack Compose–style alignment and arrangement tokens instead of raw CSS values.
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` that applies sizing, padding, background, scroll behaviour, and more to the outer container. Build one with `Modifier.fillMaxWidth().padding(16)` or any other chain of modifier methods.
+</ParamField>
+
+<ParamField path="horizontalAlignment" type="HorizontalAlignment" default="Alignment.Start">
+  Cross-axis alignment — controls how children are positioned along the horizontal axis. Accepts `Alignment.Start`, `Alignment.CenterHorizontally`, or `Alignment.End`.
+</ParamField>
+
+<ParamField path="verticalArrangement" type="ArrangementValue" default="Arrangement.Top">
+  Main-axis distribution — controls how children are spaced along the vertical axis. Accepts static tokens such as `Arrangement.Top`, `Arrangement.Center`, `Arrangement.SpaceBetween`, or a dynamic gap via `Arrangement.spacedBy(px)`.
+</ParamField>
+
+```svelte
+<script>
+  import { Column } from 'compose-svelted';
+  import { Modifier } from 'compose-svelted/core';
+  import { Alignment, Arrangement } from 'compose-svelted/layouts';
+</script>
+
+<Column
+  modifier={Modifier.fillMaxWidth().padding(16)}
+  horizontalAlignment={Alignment.CenterHorizontally}
+  verticalArrangement={Arrangement.spacedBy(12)}
+>
+  <Text textStyle="titleLarge">Profile</Text>
+  <Text textStyle="bodyMedium">Android developer</Text>
+</Column>
+```
+
+<Note>
+  Scroll is **not** enabled on `Column` by default. For content that may exceed the viewport, chain `Modifier.verticalScroll()` onto the modifier, or switch to [`LazyColumn`](#lazycolumn) for long data-driven lists.
+</Note>
+
+---
+
+## Row
+
+`Row` is a horizontal flex container. Children are arranged along the main (horizontal) axis and aligned on the cross (vertical) axis. It pairs naturally with `Spacer` to push items to opposite ends, or with `Arrangement.SpaceBetween` for toolbar-style layouts.
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` applied to the outer container div. Use it to set width, padding, background colour, or any other visual property.
+</ParamField>
+
+<ParamField path="verticalAlignment" type="VerticalAlignment" default="Alignment.Top">
+  Cross-axis alignment — controls how children sit along the vertical axis. Accepts `Alignment.Top`, `Alignment.CenterVertically`, or `Alignment.Bottom`.
+</ParamField>
+
+<ParamField path="horizontalArrangement" type="ArrangementValue" default="Arrangement.Start">
+  Main-axis distribution — controls how children are spaced along the horizontal axis. Accepts `Arrangement.Start`, `Arrangement.End`, `Arrangement.Center`, `Arrangement.SpaceBetween`, `Arrangement.SpaceAround`, `Arrangement.SpaceEvenly`, or `Arrangement.spacedBy(px)`.
+</ParamField>
+
+```svelte
+<script>
+  import { Row, Text, IconButton } from 'compose-svelted';
+  import { Modifier } from 'compose-svelted/core';
+  import { Alignment, Arrangement } from 'compose-svelted/layouts';
+</script>
+
+<Row
+  verticalAlignment={Alignment.CenterVertically}
+  horizontalArrangement={Arrangement.SpaceBetween}
+  modifier={Modifier.fillMaxWidth().padding({ start: 16, end: 16 })}
+>
+  <Text textStyle="titleMedium">Settings</Text>
+  <IconButton onClick={() => {}}>...</IconButton>
+</Row>
+```
+
+<Note>
+  Horizontal overflow is not handled automatically. Chain `Modifier.horizontalScroll()` for a scrollable row, or use [`LazyRow`](#lazyrow) when rendering many items from an array.
+</Note>
+
+---
+
+## Box
+
+`Box` is a stacking container backed by CSS Grid with a single named area (`'stack'`). Every direct child is placed into the same grid cell, so children overlap one another. This makes it ideal for overlay patterns — a background image with a text caption, a loading spinner over content, a badge on an avatar, and so on.
+
+The default alignment for all children is set by `contentAlignment`. Individual children can override their own position by applying `Modifier.align(Alignment.XXX)`, which injects a `place-self` rule scoped to that child only.
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` applied to the outer grid container. Use `Modifier.fillMaxSize()` to have the Box fill its parent, or `Modifier.size(200)` for a fixed dimension.
+</ParamField>
+
+<ParamField path="contentAlignment" type="BoxAlignment" default="Alignment.TopStart">
+  Default alignment for **all** children within the stack cell. Accepts any compound `BoxAlignment` token: `Alignment.TopStart`, `Alignment.Center`, `Alignment.BottomEnd`, etc. Children can override this individually with `Modifier.align()`.
+</ParamField>
+
+```svelte
+<script>
+  import { Box, Image, Text } from 'compose-svelted';
+  import { Modifier } from 'compose-svelted/core';
+  import { Alignment, ContentScale } from 'compose-svelted/layouts';
+</script>
+
+<!-- Overlay pattern: image behind, caption pinned to bottom-start -->
+<Box
+  contentAlignment={Alignment.Center}
+  modifier={Modifier.fillMaxSize()}
+>
+  <Image
+    painter="https://example.com/hero.jpg"
+    contentScale={ContentScale.Crop}
+    modifier={Modifier.fillMaxSize()}
+  />
+  <Text
+    modifier={Modifier.align(Alignment.BottomStart).padding(16)}
+    color="white"
+  >
+    Caption
+  </Text>
+</Box>
+```
+
+<Tip>
+  Use `Modifier.align()` on individual children to break out of the default `contentAlignment` without affecting siblings. For example, pin a close button to the top-right corner with `Modifier.align(Alignment.TopEnd)` while keeping the main content centred.
+</Tip>
+
+---
+
+## Spacer
+
+`Spacer` is a zero-content element with `flex: 1` that expands to fill the available space inside a flex container. Drop it between two siblings in a `Row` or `Column` to push them to opposite ends, or give it a fixed dimension with `Modifier.height()` / `Modifier.width()` to insert precise gaps without using `Arrangement.spacedBy`.
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A `Modifier` applied to the spacer div. Chain `Modifier.height(16)` for a fixed vertical gap, `Modifier.width(8)` for a fixed horizontal gap, or leave it empty to let the spacer expand and fill all remaining flex space.
+</ParamField>
+
+```svelte
+<script>
+  import { Row, Text, Spacer, IconButton } from 'compose-svelted';
+  import { Modifier } from 'compose-svelted/core';
+  import { Alignment } from 'compose-svelted/layouts';
+</script>
+
+<!-- Title on the left, action button pushed to the far right -->
+<Row
+  verticalAlignment={Alignment.CenterVertically}
+  modifier={Modifier.fillMaxWidth().padding(16)}
+>
+  <Text textStyle="titleMedium">Inbox</Text>
+  <Spacer />
+  <IconButton onClick={() => {}}>...</IconButton>
+</Row>
+```
+
+<Tip>
+  For a fixed-size gap between items, prefer `Arrangement.spacedBy(px)` on the parent container — it applies uniform spacing without needing an explicit `Spacer` between every pair of children. Reserve `Spacer` for asymmetric layouts where you need one large flexible gap in a specific position.
+</Tip>

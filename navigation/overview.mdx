@@ -1,0 +1,104 @@
+---
+title: "Navigation in Compose Svelted: No External Router"
+sidebarTitle: "Overview"
+description: "A Jetpack Compose-inspired navigation system for Svelte 5 — no external router needed. Manage screens with a back stack driven by a Svelte store."
+---
+
+Compose Svelted ships its own navigation system inspired by Jetpack Compose Navigation. There is no dependency on SvelteKit's router, `svelte-navigator`, or any other third-party library — navigation is purely reactive state managed through a Svelte `writable` store. Define your routes, register your screens, hand a `NavController` to a `NavHost`, and the active screen is always in sync with the back stack automatically.
+
+## Core Concepts
+
+**NavController** manages the back stack. Internally it holds a Svelte `writable` store containing an array of `NavBackStackEntry` objects. You push new screens onto the stack with `navigate()` and remove the top screen with `popBackStack()`.
+
+**NavHost** is the Svelte component that watches the `NavController`'s store and renders whichever screen corresponds to the top entry of the back stack. Animated transitions between screens are handled here too.
+
+**Route** is a plain TypeScript type with a single `path` string field. Routes act as typed identifiers — there is no runtime routing engine, just a string comparison between the current back stack entry and the registered composable routes.
+
+**Back stack** is an array of `NavBackStackEntry` objects. Each entry carries the route string and an optional `args` payload of any shape, letting you pass data forward to the next screen without global state or stores.
+
+```ts
+type Route<T = unknown> = {
+  path: string; // e.g. "login", "home", "details"
+};
+
+type NavBackStackEntry<T = unknown> = {
+  route: string;
+  args?: T;
+};
+```
+
+## Navigation Is State
+
+Because the back stack is a Svelte `writable` store, every navigation action (`navigate`, `popBackStack`) is just a store update. `NavHost` subscribes reactively — no event buses, no imperative DOM manipulation. This also means you can inspect or even extend the stack from anywhere in your application that has access to the `NavController` instance.
+
+<Tip>
+  Pass the `NavController` down through props (or a Svelte context) to any component that needs to trigger navigation. Avoid storing it in a global singleton — creating it with `rememberNavController()` at the component level keeps it scoped and predictable.
+</Tip>
+
+## Architecture at a Glance
+
+Setting up navigation involves six straightforward steps:
+
+1. **Define routes** — Create `Route` objects grouped in a `routes.ts` file for easy import across screens.
+2. **Create screens** — Each screen is a normal Svelte component that receives `navController` and `navBackStackEntry` as props.
+3. **Register routes** — Wrap each route/component pair with the `composable()` helper to produce the array `NavHost` expects.
+4. **Create a NavController** — Call `rememberNavController(startDestination)` with the path of your initial screen.
+5. **Render NavHost** — Pass the controller and routes array; `NavHost` handles everything else.
+6. **Navigate** — Screens call `navController.navigate(path, args?)` to go forward and `navController.popBackStack()` to go back.
+
+## Quick Setup
+
+Start by defining your routes in a dedicated file:
+
+```ts
+// routes.ts
+import type { Route } from "@danielito1996/compose-svelted";
+
+export const Routes = {
+  Login:   { path: "login"   } satisfies Route,
+  Home:    { path: "home"    } satisfies Route,
+  Details: { path: "details" } satisfies Route,
+} as const;
+```
+
+Then wire everything together in your root component:
+
+```svelte
+<!-- App.svelte -->
+<script lang="ts">
+  import {
+    rememberNavController,
+    NavHost,
+    composable,
+  } from "@danielito1996/compose-svelted";
+  import LoginScreen  from "./LoginScreen.svelte";
+  import HomeScreen   from "./HomeScreen.svelte";
+  import DetailsScreen from "./DetailsScreen.svelte";
+  import { Routes } from "./routes";
+
+  const navController = rememberNavController(Routes.Login.path);
+
+  const routes = [
+    composable(Routes.Login,    () => LoginScreen),
+    composable(Routes.Home,     () => HomeScreen),
+    composable(Routes.Details,  () => DetailsScreen),
+  ];
+</script>
+
+<NavHost {navController} {routes} />
+```
+
+<Note>
+  `rememberNavController` is a thin factory that calls `new NavController(startDestination)`. It exists to mirror Jetpack Compose's `rememberNavController()` API and make the intent clear at the call site.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="NavController" icon="sliders" href="/navigation/nav-controller">
+    Learn how the back stack works, explore all methods, and see how to pass arguments between screens.
+  </Card>
+  <Card title="NavHost" icon="layout-panel-top" href="/navigation/nav-host">
+    Understand how NavHost renders the active screen, configure transitions, and see a full multi-screen example.
+  </Card>
+</CardGroup>

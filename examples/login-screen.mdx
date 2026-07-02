@@ -1,0 +1,237 @@
+---
+title: "Login Screen: Two Complete Real-World Examples"
+sidebarTitle: "Login Screen"
+description: "Build production-ready login screens with Compose Svelted — from a clean minimal form to a rich overlay design with background imagery."
+---
+
+These two examples demonstrate how to compose a fully functional login screen using Compose Svelted's declarative layout primitives. Both are production-quality patterns you can drop straight into a real project, adapting colours, copy, and form logic to fit your auth flow.
+
+<Note>
+  Before using any example below, make sure you have the CSS baseline imported and that your component tree is wrapped with `<ComposeTheme>` and `<AppRoot>`. See the [Quickstart](/quickstart) for setup details.
+</Note>
+
+<Tabs>
+  <Tab title="Simple Login">
+    A clean, minimal login card centred on a themed background. It relies on a single `Box` to centre content, a `Surface` card for elevation and colour, and a `Column` to stack the header, form fields, action button, and footer with consistent spacing.
+
+    ```svelte
+    <script>
+      import {
+        Box, Column, Row, Surface, Text, Button, TextField, Icon,
+        Modifier, Alignment, Arrangement, ColorScheme, TextStyle
+      } from "@danielito1996/compose-svelted";
+
+      let name = "";
+      let pass = "";
+    </script>
+
+    <Box
+      contentAlignment={Alignment.Center}
+      modifier={Modifier.fillMaxSize().background(ColorScheme.Background)}
+    >
+      <Surface color={ColorScheme.Surface}>
+        <Column
+          horizontalAlignment={Alignment.CenterVertically}
+          verticalArrangement={Arrangement.spacedBy(20)}
+          modifier={Modifier.padding(32)}
+        >
+          <!-- Header -->
+          <Column
+            horizontalAlignment={Alignment.CenterVertically}
+            verticalArrangement={Arrangement.spacedBy(8)}
+          >
+            <Text textStyle={TextStyle.HeadlineMedium}>
+              Bienvenido 👋
+            </Text>
+            <Text textStyle={TextStyle.BodyMedium}>
+              Accede a tu cuenta para continuar
+            </Text>
+          </Column>
+
+          <!-- Form -->
+          <Column
+            verticalArrangement={Arrangement.spacedBy(16)}
+            modifier={Modifier.fillMaxWidth()}
+          >
+            <TextField
+              value={name}
+              onValueChange={value => name = value}
+              label="Email"
+            />
+            <TextField
+              value={pass}
+              onValueChange={value => pass = value}
+              label="Contraseña"
+            />
+          </Column>
+
+          <!-- Action -->
+          <Button modifier={Modifier.fillMaxWidth()}>
+            <Row
+              horizontalArrangement={Arrangement.spacedBy(10)}
+              verticalAlignment={Alignment.CenterVertically}
+            >
+              <Icon
+                painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/login.svg"
+                tint={ColorScheme.OnPrimary}
+                modifier={Modifier.size(18)}
+              />
+              <Text color={ColorScheme.OnPrimary}>
+                Iniciar sesión
+              </Text>
+            </Row>
+          </Button>
+
+          <!-- Footer -->
+          <Text textStyle={TextStyle.BodyMedium}>
+            compose-svelted · UI declarativa
+          </Text>
+        </Column>
+      </Surface>
+    </Box>
+    ```
+
+    **Key points**
+
+    | Element | Purpose |
+    |---|---|
+    | `Box` + `Alignment.Center` | Centres the card both horizontally and vertically inside the full-screen area |
+    | `ColorScheme.Background` / `ColorScheme.Surface` | Adapts automatically to light and dark mode via `ComposeTheme` |
+    | `Arrangement.spacedBy(20)` | Adds uniform gap between every child without extra `Spacer` components |
+    | `Modifier.fillMaxWidth()` on `Button` | Stretches the CTA to the full card width, a common mobile pattern |
+    | `Icon` with `tint={ColorScheme.OnPrimary}` | Keeps the icon colour in sync with the button surface colour |
+  </Tab>
+
+  <Tab title="Professional Login with Background Image">
+    A visually rich variant that layers a full-bleed background image, a semi-transparent dark overlay, and a rounded `Surface` card. Ideal for marketing-forward screens where brand imagery matters.
+
+    ```svelte
+    <script lang="ts">
+      import {
+        Box, Column, Row, Surface, Text, Button, TextField, Image,
+        Modifier, Alignment, Arrangement, ColorScheme, ContentScale,
+        RoundedCornerShape, TextStyle
+      } from "@danielito1996/compose-svelted";
+
+      let email = "";
+      let password = "";
+    </script>
+
+    <Box modifier={Modifier.fillMaxSize()}>
+
+      <!-- Background image -->
+      <Image
+        painter="https://images.unsplash.com/photo-1519389950473-47ba0277781c"
+        contentDescription="Background"
+        contentScale={ContentScale.Crop}
+        modifier={Modifier.fillMaxSize().align(Alignment.Center)}
+      />
+
+      <!-- Semi-transparent overlay -->
+      <Box
+        contentAlignment={Alignment.Center}
+        modifier={
+          Modifier
+            .fillMaxSize()
+            .background("rgba(0,0,0,0.45)")
+            .align(Alignment.Center)
+        }
+      >
+        <Surface
+          color={ColorScheme.Surface}
+          modifier={Modifier.padding(24).clip(RoundedCornerShape(30))}
+        >
+          <Column
+            horizontalAlignment={Alignment.CenterVertically}
+            verticalArrangement={Arrangement.spacedBy(28)}
+            modifier={Modifier.padding(36)}
+          >
+            <!-- Brand -->
+            <Column
+              horizontalAlignment={Alignment.CenterVertically}
+              verticalArrangement={Arrangement.spacedBy(12)}
+            >
+              <Image
+                painter="https://upload.wikimedia.org/wikipedia/commons/3/33/Figma-logo.svg"
+                contentDescription="Logo"
+                contentScale={ContentScale.Fit}
+                modifier={Modifier.size(56)}
+              />
+              <Text textStyle={TextStyle.HeadlineMedium}>
+                Iniciar sesión
+              </Text>
+              <Text textStyle={TextStyle.BodyMedium}>
+                Accede a tu cuenta
+              </Text>
+            </Column>
+
+            <!-- Form -->
+            <Column
+              verticalArrangement={Arrangement.spacedBy(16)}
+              modifier={Modifier.fillMaxWidth()}
+            >
+              <TextField
+                value={email}
+                onValueChange={v => email = v}
+                label="Email"
+              />
+              <TextField
+                value={password}
+                onValueChange={v => password = v}
+                label="Contraseña"
+              />
+            </Column>
+
+            <!-- Action -->
+            <Button modifier={Modifier.fillMaxWidth()}>
+              <Row
+                horizontalArrangement={Arrangement.spacedBy(10)}
+                verticalAlignment={Alignment.CenterVertically}
+              >
+                <Image
+                  painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/login.svg"
+                  contentDescription="Login"
+                  contentScale={ContentScale.Fit}
+                  modifier={Modifier.size(18)}
+                />
+                <Text>Acceder</Text>
+              </Row>
+            </Button>
+
+            <Text textStyle={TextStyle.BodyMedium}>
+              compose-svelted · UI declarativa
+            </Text>
+          </Column>
+        </Surface>
+      </Box>
+    </Box>
+    ```
+
+    **Key points**
+
+    | Element | Purpose |
+    |---|---|
+    | Outer `Box` + inner `Box` stacking | Compose Svelted's `Box` renders children in a stack — background image first, overlay second, card on top |
+    | `ContentScale.Crop` | Fills the entire screen with the image while preserving aspect ratio, cropping at the edges |
+    | `background("rgba(0,0,0,0.45)")` | Any valid CSS colour string is accepted, giving you full control over overlay opacity |
+    | `RoundedCornerShape(30)` with `Modifier.clip()` | Clips the `Surface` to large rounded corners for a modern card feel |
+    | Nested brand `Column` | Separates logo + headings from the form fields so each section can have its own `Arrangement` spacing |
+  </Tab>
+</Tabs>
+
+## Going further
+
+<CardGroup cols={2}>
+  <Card title="Navigation Flow" icon="route" href="/examples/navigation-flow">
+    Connect your login screen to a full multi-screen navigation flow with back-stack management.
+  </Card>
+  <Card title="AnimatedVisibility" icon="sparkles" href="/motion/animated-visibility">
+    Add entrance and exit animations to the login card using `fadeIn`, `scaleIn`, and more.
+  </Card>
+  <Card title="TextField" icon="keyboard" href="/components/text-fields">
+    Full reference for `TextField` — validation, keyboard types, leading/trailing icons.
+  </Card>
+  <Card title="ComposeTheme" icon="palette" href="/concepts/theme">
+    Learn how `ComposeTheme` drives `ColorScheme` values and light/dark switching.
+  </Card>
+</CardGroup>

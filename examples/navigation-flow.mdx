@@ -1,0 +1,233 @@
+---
+title: "Multi-Screen Navigation Flow Example"
+sidebarTitle: "Navigation Flow"
+description: "Walk through a complete Login → Home → Details app in Compose Svelted, covering route definitions, argument passing, and back-stack management."
+---
+
+This example builds a complete three-screen application from scratch using Compose Svelted's navigation system. You will define typed routes, create individual screen components that receive a `NavController`, pass arguments between screens, and wire everything together inside a `NavHost` with animated transitions. By the end you will have a working Login → Home → Details flow with full back-stack support.
+
+<Note>
+  The navigation API mirrors Jetpack Compose's `NavController` / `NavHost` pattern. If you have used `androidx.navigation` in Android development, the concepts will feel immediately familiar.
+</Note>
+
+<Steps>
+  <Step title="Define your routes">
+    Start by declaring your route objects in a shared `routes.ts` file. Each route is a plain object with a `path` string that satisfies the `Route` type contract. Grouping them in a `Routes` constant lets every screen import from one source of truth and avoids hard-coded path strings.
+
+    ```ts
+    // routes.ts
+    import type { Route } from "@danielito1996/compose-svelted";
+
+    export const Routes = {
+      Login:   { path: "login" }   satisfies Route,
+      Home:    { path: "home" }    satisfies Route,
+      Details: { path: "details" } satisfies Route,
+    } as const;
+    ```
+
+    <Tip>
+      Using `satisfies Route` instead of a type annotation keeps full literal-type inference on each `path` property, so `Routes.Login.path` is typed as `"login"` rather than the wider `string`.
+    </Tip>
+  </Step>
+
+  <Step title="Create LoginScreen">
+    The login screen collects credentials and navigates to `Home` on success, passing the entered email as a route argument so the next screen can greet the user by name.
+
+    ```svelte
+    <!-- LoginScreen.svelte -->
+    <script lang="ts">
+      import {
+        Column, Text, Button, TextField, Modifier, Alignment, Arrangement
+      } from "@danielito1996/compose-svelted";
+      import type { NavController } from "@danielito1996/compose-svelted";
+      import { Routes } from "./routes";
+
+      export let navController: NavController;
+      let email = "";
+      let password = "";
+    </script>
+
+    <Column
+      modifier={Modifier.fillMaxSize().padding(32)}
+      verticalArrangement={Arrangement.spacedBy(20)}
+      horizontalAlignment={Alignment.CenterHorizontally}
+    >
+      <Text textStyle="headlineMedium">Sign In</Text>
+
+      <TextField
+        value={email}
+        onValueChange={(v) => email = v}
+        label="Email"
+        modifier={Modifier.fillMaxWidth()}
+      />
+
+      <TextField
+        value={password}
+        onValueChange={(v) => password = v}
+        label="Password"
+        modifier={Modifier.fillMaxWidth()}
+      />
+
+      <Button
+        onClick={() => navController.navigate(Routes.Home.path, { user: email })}
+        modifier={Modifier.fillMaxWidth()}
+      >
+        <Text>Sign In</Text>
+      </Button>
+    </Column>
+    ```
+
+    The second argument to `navController.navigate()` is a free-form object. The receiving screen reads it back from `navBackStackEntry.args` — covered in the next step.
+  </Step>
+
+  <Step title="Create HomeScreen">
+    `HomeScreen` receives the `navBackStackEntry` prop automatically from `NavHost`. It destructures `user` from `args` to display a personalised greeting, then offers navigation to `Details` (passing an item ID) or a logout action that pops the back stack.
+
+    ```svelte
+    <!-- HomeScreen.svelte -->
+    <script lang="ts">
+      import {
+        Column, Text, Button, Modifier, Arrangement
+      } from "@danielito1996/compose-svelted";
+      import type { NavController, NavBackStackEntry } from "@danielito1996/compose-svelted";
+      import { Routes } from "./routes";
+
+      export let navController: NavController;
+      export let navBackStackEntry: NavBackStackEntry;
+
+      const { user } = navBackStackEntry.args as { user: string };
+    </script>
+
+    <Column
+      modifier={Modifier.fillMaxSize().padding(24)}
+      verticalArrangement={Arrangement.spacedBy(16)}
+    >
+      <Text textStyle="headlineMedium">Welcome, {user}!</Text>
+
+      <Button onClick={() => navController.navigate(Routes.Details.path, { id: 1 })}>
+        <Text>View Details</Text>
+      </Button>
+
+      <Button onClick={() => navController.popBackStack()}>
+        <Text>Log Out</Text>
+      </Button>
+    </Column>
+    ```
+
+    <Warning>
+      Always check that `navBackStackEntry.args` is not `undefined` before destructuring when arguments are optional. Use optional chaining — `navBackStackEntry?.args ?? {}` — if the screen can also be the initial destination.
+    </Warning>
+  </Step>
+
+  <Step title="Create DetailsScreen">
+    `DetailsScreen` reads the `id` argument and renders item-specific content. A single back button calls `popBackStack()` to return the user to `HomeScreen`.
+
+    ```svelte
+    <!-- DetailsScreen.svelte -->
+    <script lang="ts">
+      import {
+        Column, Text, Button, Modifier, Arrangement
+      } from "@danielito1996/compose-svelted";
+      import type { NavController, NavBackStackEntry } from "@danielito1996/compose-svelted";
+
+      export let navController: NavController;
+      export let navBackStackEntry: NavBackStackEntry;
+
+      const { id } = navBackStackEntry.args as { id: number };
+    </script>
+
+    <Column
+      modifier={Modifier.fillMaxSize().padding(24)}
+      verticalArrangement={Arrangement.spacedBy(16)}
+    >
+      <Text textStyle="headlineMedium">Details: item #{id}</Text>
+
+      <Button onClick={() => navController.popBackStack()}>
+        <Text>Go Back</Text>
+      </Button>
+    </Column>
+    ```
+  </Step>
+
+  <Step title="Wire everything together in App.svelte">
+    Finally, instantiate a `NavController` with `rememberNavController`, declare the route-to-component map using `composable`, and hand both to `NavHost`. `ComposeTheme` and `AppRoot` must wrap the entire tree.
+
+    ```svelte
+    <!-- App.svelte -->
+    <script lang="ts">
+      import {
+        ComposeTheme, AppRoot, NavHost,
+        rememberNavController, composable, slideHorizontal
+      } from "@danielito1996/compose-svelted";
+      import LoginScreen from "./LoginScreen.svelte";
+      import HomeScreen from "./HomeScreen.svelte";
+      import DetailsScreen from "./DetailsScreen.svelte";
+      import { Routes } from "./routes";
+
+      const navController = rememberNavController(Routes.Login.path);
+
+      const routes = [
+        composable(Routes.Login,   () => LoginScreen),
+        composable(Routes.Home,    () => HomeScreen),
+        composable(Routes.Details, () => DetailsScreen),
+      ];
+    </script>
+
+    <ComposeTheme mode="system">
+      <AppRoot>
+        <NavHost
+          {navController}
+          {routes}
+          transition={slideHorizontal()}
+        />
+      </AppRoot>
+    </ComposeTheme>
+    ```
+
+    The `transition` prop accepts any built-in transition factory — `slideHorizontal()`, `slideVertical()`, `fade()` — or a custom `EnterTransition` / `ExitTransition` pair. Setting it here applies the same animation to every route change in this host.
+
+    <Tip>
+      `rememberNavController` takes the **initial route path** as its argument. The controller will navigate there automatically on first render, so make sure the path matches one of your `composable` entries exactly.
+    </Tip>
+  </Step>
+</Steps>
+
+## Back-stack behaviour
+
+`popBackStack()` removes the current screen and reveals the previous one. However, **it will not remove the last remaining screen** — if the back stack has only one entry, calling `popBackStack()` is a no-op, preventing a blank host. Design your logout or unauthenticated flows to navigate *to* a destination (e.g. `navController.navigate(Routes.Login.path)`) rather than relying on popping back to it.
+
+<Tip>
+  To clear the entire history when logging out — so the user cannot press back into an authenticated screen — pass `{ clearBackStack: true }` as the third argument to `navController.navigate()`.
+</Tip>
+
+## Full navigation flow diagram
+
+```
+[LoginScreen]
+     │  navigate(Routes.Home.path, { user: email })
+     ▼
+[HomeScreen]
+     │  navigate(Routes.Details.path, { id: 1 })
+     ▼                                              popBackStack()
+[DetailsScreen] ─────────────────────────────────▶ [HomeScreen]
+                                                         │ popBackStack()
+                                                         ▼
+                                                   [LoginScreen]
+```
+
+## Reference
+
+<CardGroup cols={2}>
+  <Card title="NavController" icon="compass" href="/navigation/nav-controller">
+    Full API reference for `rememberNavController`, `navigate`, `popBackStack`, and navigation options.
+  </Card>
+  <Card title="NavHost" icon="map" href="/navigation/nav-host">
+    Props reference for `NavHost` including `transition`, `modifier`, and the `composable` helper.
+  </Card>
+  <Card title="Login Screen Example" icon="lock" href="/examples/login-screen">
+    Pair this flow with a polished login screen — Simple or Professional with background image.
+  </Card>
+  <Card title="Navigation Overview" icon="book-open" href="/navigation/overview">
+    Conceptual introduction to Compose Svelted's navigation model and how it differs from SvelteKit routing.
+  </Card>
+</CardGroup>

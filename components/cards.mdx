@@ -1,0 +1,153 @@
+---
+title: "Card and OutlinedCard: Content Container Components"
+sidebarTitle: "Cards"
+description: "Learn how to use Card and OutlinedCard to group related content with Material 3 elevation, shape, and outline styling in Compose Svelted."
+---
+
+Cards are self-contained content containers that visually group related information. Compose Svelted provides two variants: `Card`, which uses a drop shadow to lift content off the surface, and `OutlinedCard`, which uses a border instead of elevation for a flatter, less prominent grouping. Both accept arbitrary slot content, so you can compose any layout inside them using `Column`, `Row`, `Text`, `Button`, and other components.
+
+## Card
+
+`Card` is an elevated container built on top of `Surface`. It calculates a CSS `box-shadow` from its `elevation` value and clips its content to the specified `shape`. Use it whenever you need content to visually stand out from the background — profile summaries, product tiles, notification items, and similar patterns.
+
+<ParamField path="elevation" type="number | string" default="1">
+  Controls the drop shadow depth. A numeric value is treated as pixels and expanded to a multi-layer shadow formula (`0 {n}px calc({n}px * 3) rgba(0,0,0,0.16)`). Pass `0` or `"none"` to remove the shadow entirely. You can also pass a raw CSS shadow string for full control.
+</ParamField>
+
+<ParamField path="shape" type="Shape" default="RoundedCornerShape(16)">
+  The corner radius applied to the card container. Accepts any `Shape` instance, typically created with `RoundedCornerShape(px)` for uniform corners or `RoundedCornerShape({ topStart, topEnd, bottomEnd, bottomStart })` for per-corner control.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` applied to the outer `Surface` wrapper. Use it to control width, padding, margin, or any other layout property of the card itself.
+</ParamField>
+
+```svelte
+<script lang="ts">
+  import { Card, Text, Modifier, RoundedCornerShape } from "@danielito1996/compose-svelted";
+</script>
+
+<!-- Default card -->
+<Card modifier={Modifier.fillMaxWidth()}>
+  <Text textStyle="titleMedium">Default Card</Text>
+  <Text textStyle="bodyMedium">Content rendered inside the card slot.</Text>
+</Card>
+
+<!-- Higher elevation -->
+<Card elevation={4} modifier={Modifier.fillMaxWidth()}>
+  <Text textStyle="titleSmall">Elevated Card</Text>
+</Card>
+
+<!-- Custom rounded corners -->
+<Card shape={RoundedCornerShape(8)} elevation={2} modifier={Modifier.fillMaxWidth()}>
+  <Text textStyle="bodyLarge">Tighter corners</Text>
+</Card>
+
+<!-- Flat card (no shadow) -->
+<Card elevation={0} modifier={Modifier.fillMaxWidth()}>
+  <Text textStyle="bodyMedium">Flat, no shadow</Text>
+</Card>
+```
+
+<Note>
+  `Card` wraps its slot content in an inner `div` that carries both the `box-shadow` and `border-radius`. The outer `Surface` handles the background color. This two-layer structure means you can safely combine `Modifier.clip()` on the `Surface` without clipping the shadow.
+</Note>
+
+---
+
+## OutlinedCard
+
+`OutlinedCard` is a flat card with a visible border instead of elevation. It is useful for secondary content groupings, lists of selectable items, or any context where you want clear visual boundaries without drawing extra attention through shadow depth.
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` for layout customization of the card container.
+</ParamField>
+
+<Note>
+  `OutlinedCard`'s implementation is currently a stub in the repository. Based on the Material 3 spec and the existing `Card` architecture, it renders a border using the theme `outline` color token and omits the drop shadow. Its slot content API matches `Card`.
+</Note>
+
+```svelte
+<script lang="ts">
+  import { OutlinedCard, Text, Modifier } from "@danielito1996/compose-svelted";
+</script>
+
+<OutlinedCard modifier={Modifier.fillMaxWidth()}>
+  <Text textStyle="titleSmall">Outlined Card</Text>
+  <Text textStyle="bodyMedium">Bordered, no elevation.</Text>
+</OutlinedCard>
+```
+
+---
+
+## Composing card content
+
+Cards are most useful when their slot content is composed from layout primitives. The example below builds a profile card using `Column`, `Row`, `Text`, and `TextButton`:
+
+```svelte
+<script lang="ts">
+  import {
+    Card, Column, Row, Text, TextButton, Spacer,
+    Modifier, RoundedCornerShape, Arrangement, Alignment
+  } from "@danielito1996/compose-svelted";
+</script>
+
+<Card
+  elevation={2}
+  shape={RoundedCornerShape(16)}
+  modifier={Modifier.fillMaxWidth()}
+>
+  <Column
+    modifier={Modifier.padding(16)}
+    verticalArrangement={Arrangement.spacedBy(8)}
+  >
+    <Text textStyle="titleMedium">Card Title</Text>
+    <Text textStyle="bodyMedium" color="onSurfaceVariant">
+      Card body content goes here. Describe the item, record, or action this
+      card represents.
+    </Text>
+
+    <Row
+      horizontalArrangement={Arrangement.End}
+      modifier={Modifier.fillMaxWidth()}
+    >
+      <TextButton onClick={() => {}}>
+        <Text>Dismiss</Text>
+      </TextButton>
+      <TextButton onClick={() => {}}>
+        <Text>View</Text>
+      </TextButton>
+    </Row>
+  </Column>
+</Card>
+```
+
+### Selectable list with OutlinedCard
+
+```svelte
+<script lang="ts">
+  import { OutlinedCard, Row, Text, Modifier, Alignment, Arrangement } from "@danielito1996/compose-svelted";
+
+  const options = ["Option A", "Option B", "Option C"];
+  let selected = "";
+</script>
+
+{#each options as option}
+  <OutlinedCard modifier={Modifier.fillMaxWidth().padding(0)}>
+    <Row
+      verticalAlignment={Alignment.CenterVertically}
+      modifier={Modifier.fillMaxWidth().padding(16)}
+      horizontalArrangement={Arrangement.SpaceBetween}
+    >
+      <Text textStyle="bodyLarge">{option}</Text>
+      {#if selected === option}
+        <Text textStyle="labelSmall" color="primary">Selected</Text>
+      {/if}
+    </Row>
+  </OutlinedCard>
+{/each}
+```
+
+<Tip>
+  Nest cards inside a `Column` with `verticalArrangement={Arrangement.spacedBy(12)}` to create a consistent card list with uniform vertical gaps — no margin or padding tricks needed.
+</Tip>

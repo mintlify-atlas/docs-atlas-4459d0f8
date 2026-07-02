@@ -1,0 +1,161 @@
+---
+title: "Animation Specs and Transitions: Type Reference"
+sidebarTitle: "Animation Specs"
+description: "Complete type reference for AnimationSpec and ContentTransition — the two animation specification types used across Compose Svelted's motion components."
+---
+
+Compose Svelted's motion system is built on two lightweight plain-object types: `AnimationSpec`, used by `AnimatedVisibility`, and `ContentTransition`, used by `AnimatedContent` and `NavHost`. Both types are just data — a few strings and a number — which makes them trivial to create, compose, and pass around without any runtime overhead.
+
+## AnimationSpec
+
+`AnimationSpec` powers `AnimatedVisibility`. It describes a CSS class-based transition using Tailwind utility classes split into three parts: the transition configuration, the starting state, and the ending state.
+
+```ts
+type AnimationSpec = {
+  base: string;     // Tailwind transition classes, e.g. "transition-opacity duration-[280ms] ease-out"
+  from: string;     // Starting state classes, e.g. "opacity-0"
+  to: string;       // Ending state classes, e.g. "opacity-100"
+  duration: number; // Duration in ms — used to delay DOM removal on exit
+};
+```
+
+`AnimatedVisibility` applies `base + from` immediately when a transition begins, then swaps to `base + to` inside a `requestAnimationFrame` callback. This guarantees the browser paints the initial state before the transition runs.
+
+### Factory functions
+
+| Function | Signature | Default duration | Effect |
+|---|---|---|---|
+| `fadeIn` | `fadeIn(duration?: number)` | 280 ms | Opacity `0 → 1` with `ease-out` |
+| `fadeOut` | `fadeOut(duration?: number)` | 220 ms | Opacity `1 → 0` with `ease-in` |
+| `scaleIn` | `scaleIn(duration?: number)` | 280 ms | Scale `0.95 → 1` + opacity `0 → 1` with `ease-out` |
+| `scaleOut` | `scaleOut(duration?: number)` | 220 ms | Scale `1 → 0.95` + opacity `1 → 0` with `ease-in` |
+| `slideIn` | `slideIn(duration?: number, direction?: "left" \| "right" \| "up" \| "down")` | 280 ms, `"right"` | Translate offset → 0 + opacity `0 → 1` |
+| `slideOut` | `slideOut(duration?: number, direction?: "left" \| "right" \| "up" \| "down")` | 220 ms, `"right"` | Translate 0 → offset + opacity `1 → 0` |
+
+The `slideIn` / `slideOut` direction controls which Tailwind translate class is used as the offset:
+
+| Direction | Translate class |
+|---|---|
+| `"left"` | `-translate-x-4` |
+| `"right"` | `translate-x-4` |
+| `"up"` | `-translate-y-4` |
+| `"down"` | `translate-y-4` |
+
+### Custom AnimationSpec
+
+You can craft your own `AnimationSpec` with any valid Tailwind classes:
+
+```ts
+import type { AnimationSpec } from "@danielito1996/compose-svelted";
+
+const bounceIn: AnimationSpec = {
+  base: "transition-all duration-[400ms] ease-out",
+  from: "opacity-0 scale-75",
+  to: "opacity-100 scale-100",
+  duration: 400
+};
+```
+
+Pass it directly to `AnimatedVisibility`:
+
+```svelte
+<AnimatedVisibility visible={show} enter={bounceIn}>
+  <Card>...</Card>
+</AnimatedVisibility>
+```
+
+<Note>
+  The `duration` field in `AnimationSpec` must match the duration encoded in the `base` Tailwind classes. `AnimatedVisibility` uses `duration` to schedule DOM removal via `setTimeout` — if they are out of sync the node will be removed before the animation finishes or linger longer than expected.
+</Note>
+
+---
+
+## ContentTransition
+
+`ContentTransition` powers `AnimatedContent` and `NavHost`. Instead of Tailwind classes, it uses inline CSS style strings so transitions are applied via the element's `style` attribute alongside a `transition` property generated from `duration`.
+
+```ts
+type ContentTransition = {
+  enter: string;    // CSS style string for the visible/entered state
+  exit: string;     // CSS style string for the exiting/hidden state
+  duration: number; // Duration in ms
+};
+```
+
+`AnimatedContent` sets `transition: opacity ${duration}ms ease, transform ${duration}ms ease` on the container and then switches between `exit` and `enter` style strings as the content changes.
+
+### Factory functions
+
+| Function | Signature | Duration | Effect |
+|---|---|---|---|
+| `fade` | `fade(duration?: number)` | 300 ms (default) | Opacity `0 → 1` |
+| `scaleFade` | `scaleFade()` | 220 ms | Scale `0.95 → 1` + opacity `0 → 1` |
+| `slideHorizontal` | `slideHorizontal()` | 300 ms | `translateX(-100%) → translateX(0)` + opacity `0 → 1` |
+
+### Style strings used by each factory
+
+**`fade(duration?)`**
+
+```ts
+{ enter: "opacity: 1;", exit: "opacity: 0;", duration: 300 }
+```
+
+**`scaleFade()`**
+
+```ts
+{
+  enter: "transform: scale(1); opacity: 1;",
+  exit:  "transform: scale(0.95); opacity: 0;",
+  duration: 220
+}
+```
+
+**`slideHorizontal()`**
+
+```ts
+{
+  enter: "transform: translateX(0); opacity: 1;",
+  exit:  "transform: translateX(-100%); opacity: 0;",
+  duration: 300
+}
+```
+
+### Custom ContentTransition
+
+```ts
+import type { ContentTransition } from "@danielito1996/compose-svelted";
+
+const slideUp: ContentTransition = {
+  enter: "transform: translateY(0); opacity: 1;",
+  exit: "transform: translateY(20px); opacity: 0;",
+  duration: 250
+};
+```
+
+Pass it to `AnimatedContent` or any component that accepts a `ContentTransition`:
+
+```svelte
+<AnimatedContent targetState={step} transition={slideUp}>
+  ...
+</AnimatedContent>
+```
+
+---
+
+## Quick reference
+
+| Factory | Type | Target component(s) | Default duration |
+|---|---|---|---|
+| `fadeIn` | `AnimationSpec` | `AnimatedVisibility` | 280 ms |
+| `fadeOut` | `AnimationSpec` | `AnimatedVisibility` | 220 ms |
+| `scaleIn` | `AnimationSpec` | `AnimatedVisibility` | 280 ms |
+| `scaleOut` | `AnimationSpec` | `AnimatedVisibility` | 220 ms |
+| `slideIn` | `AnimationSpec` | `AnimatedVisibility` | 280 ms |
+| `slideOut` | `AnimationSpec` | `AnimatedVisibility` | 220 ms |
+| `fade` | `ContentTransition` | `AnimatedContent`, `NavHost` | 300 ms |
+| `scaleFade` | `ContentTransition` | `AnimatedContent`, `NavHost` | 220 ms |
+| `slideHorizontal` | `ContentTransition` | `AnimatedContent`, `NavHost` | 300 ms |
+
+<Tip>
+  All factory functions and both types are exported from the top-level `@danielito1996/compose-svelted` package. You never need to import from deep paths.
+</Tip>

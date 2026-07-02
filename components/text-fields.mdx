@@ -1,0 +1,306 @@
+---
+title: "TextField and OutlinedTextField: Input Components"
+sidebarTitle: "Text Fields"
+description: "Document TextField and OutlinedTextField — Material 3 input components with floating labels, icon slots, density, error states, and full color control."
+---
+
+`TextField` and `OutlinedTextField` are Compose Svelted's two Material 3 input field variants. Both share the same underlying `BaseTextField` implementation and expose an identical public API, differing only in visual style: `TextField` uses a filled container drawn from the `surfaceVariant` color with a bottom indicator line, while `OutlinedTextField` uses a transparent background surrounded by a full border. Both support floating labels, leading and trailing icon slots, error states, supporting text, and compact density.
+
+## TextField (Filled)
+
+`TextField` renders a filled input field with a `surfaceVariant` background and a bottom-edge indicator line that changes color when focused or in error. The label floats above the input text when the field is active or has a value.
+
+<ParamField path="value" type="string" default="">
+  The current value of the input. This is a controlled prop — you must update it yourself inside `onValueChange`.
+</ParamField>
+
+<ParamField path="onValueChange" type="(v: string) => void" default="(v) => {}">
+  Called on every keystroke with the new input string. Assign the received value back to your reactive variable to keep the field in sync.
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  A floating label that sits inside the field at rest and animates to a smaller position above the input text when the field is focused or has a value.
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="">
+  Placeholder text shown inside the input area. The placeholder only appears while the field is focused; it is hidden when the field is blurred and empty to avoid conflicting with the label.
+</ParamField>
+
+<ParamField path="enabled" type="boolean" default="true">
+  When `false`, all interactions are suppressed and the field renders at 60% opacity.
+</ParamField>
+
+<ParamField path="isError" type="boolean" default="false">
+  Switches the label, indicator, and supporting text to the theme `error` color. Use this to communicate validation failures.
+</ParamField>
+
+<ParamField path="singleLine" type="boolean" default="true">
+  When `true`, renders a single-line `input[type=text]`. When `false`, renders a `textarea` with a minimum height of 88 dp (or 72 dp in compact density).
+</ParamField>
+
+<ParamField path="readOnly" type="boolean" default="false">
+  When `true`, the input value is displayed but cannot be edited. Interactions are disabled but the field does not appear disabled.
+</ParamField>
+
+<ParamField path="textStyle" type="TextStyleToken" default="bodyLarge">
+  Typography token applied to the input text. Defaults to `bodyLarge` per the Material 3 spec.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  A chainable `Modifier` applied to the outer wrapper. Use `Modifier.fillMaxWidth()` to make the field stretch to its container.
+</ParamField>
+
+<ParamField path="shape" type="Shape" default="RoundedCornerShape(12)">
+  Corner radius of the filled container. Defaults to `RoundedCornerShape(12)` for the standard MD3 filled field shape.
+</ParamField>
+
+<ParamField path="supportingText" type="string | undefined" default="undefined">
+  Helper or error text rendered below the field. Uses the `error` color when `isError` is `true`, otherwise uses `onSurfaceVariant`.
+</ParamField>
+
+<ParamField path="density" type="DensityToken" default="Density.Default">
+  Controls the vertical compactness of the field. See the [Density](#density) section below.
+</ParamField>
+
+<ParamField path="colors" type="TextFieldColors" default="TextFieldDefaults.filledColors()">
+  Full color override object for every part of the field. See the [TextFieldColors](#textfieldcolors) section below.
+</ParamField>
+
+### Icon slots
+
+`TextField` exposes two named slots for decorating the field with icons.
+
+| Slot | Position |
+|---|---|
+| `leadingIcon` | Left side of the input area, before the text |
+| `trailingIcon` | Right side of the input area, after the text |
+
+```svelte
+<script lang="ts">
+  import { TextField, Icon, Modifier } from "@danielito1996/compose-svelted";
+
+  let search = "";
+</script>
+
+<TextField
+  value={search}
+  onValueChange={(v) => (search = v)}
+  label="Search"
+  placeholder="Type to search..."
+  modifier={Modifier.fillMaxWidth()}
+>
+  <Icon
+    slot="leadingIcon"
+    painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/magnify.svg"
+    modifier={Modifier.size(20)}
+  />
+  {#if search}
+    <Icon
+      slot="trailingIcon"
+      painter="https://cdn.jsdelivr.net/npm/@mdi/svg/svg/close.svg"
+      modifier={Modifier.size(20)}
+    />
+  {/if}
+</TextField>
+```
+
+---
+
+## OutlinedTextField
+
+`OutlinedTextField` is visually identical to `TextField` in behaviour but renders a transparent container surrounded by a full rectangular border instead of a filled background and bottom line. The border color transitions between `outline` (unfocused) and `primary` (focused), following the Material 3 outlined text field specification.
+
+All props are identical to `TextField`. The only meaningful internal difference is the default `colors` value, which uses `TextFieldDefaults.outlinedColors()` instead of `TextFieldDefaults.filledColors()`.
+
+<ParamField path="value" type="string" default="">
+  The current controlled input value.
+</ParamField>
+
+<ParamField path="onValueChange" type="(v: string) => void" default="(v) => {}">
+  Callback with the new value on every keystroke.
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  Floating label text.
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="">
+  Placeholder shown while focused.
+</ParamField>
+
+<ParamField path="enabled" type="boolean" default="true">
+  Disables interaction and dims the field when `false`.
+</ParamField>
+
+<ParamField path="isError" type="boolean" default="false">
+  Activates error coloring on the border, label, and supporting text.
+</ParamField>
+
+<ParamField path="singleLine" type="boolean" default="true">
+  Single-line input (`true`) or multiline textarea (`false`).
+</ParamField>
+
+<ParamField path="readOnly" type="boolean" default="false">
+  Shows the value without allowing edits.
+</ParamField>
+
+<ParamField path="textStyle" type="TextStyleToken" default="bodyLarge">
+  Typography for the input text.
+</ParamField>
+
+<ParamField path="modifier" type="Modifier" default="Modifier.empty()">
+  Chainable `Modifier` applied to the outer border container.
+</ParamField>
+
+<ParamField path="shape" type="Shape" default="RoundedCornerShape(12)">
+  Corner radius for both the border and the inner container.
+</ParamField>
+
+<ParamField path="supportingText" type="string | undefined" default="undefined">
+  Helper or error text below the field.
+</ParamField>
+
+<ParamField path="density" type="DensityToken" default="Density.Default">
+  Field height and padding density.
+</ParamField>
+
+<ParamField path="colors" type="TextFieldColors" default="TextFieldDefaults.outlinedColors()">
+  Full color override for all visual elements.
+</ParamField>
+
+---
+
+## Basic usage example
+
+```svelte
+<script lang="ts">
+  import {
+    Column, TextField, OutlinedTextField, Button, Text, Modifier, Arrangement
+  } from "@danielito1996/compose-svelted";
+
+  let email = "";
+  let password = "";
+  let emailError = false;
+
+  function validate() {
+    emailError = !email.includes("@");
+  }
+</script>
+
+<Column
+  modifier={Modifier.fillMaxWidth().padding(24)}
+  verticalArrangement={Arrangement.spacedBy(16)}
+>
+  <TextField
+    value={email}
+    onValueChange={(v) => (email = v)}
+    label="Email"
+    placeholder="you@example.com"
+    isError={emailError}
+    supportingText={emailError ? "Enter a valid email address." : undefined}
+    modifier={Modifier.fillMaxWidth()}
+  />
+
+  <OutlinedTextField
+    value={password}
+    onValueChange={(v) => (password = v)}
+    label="Password"
+    modifier={Modifier.fillMaxWidth()}
+  />
+
+  <Button onClick={validate} modifier={Modifier.fillMaxWidth()}>
+    <Text>Sign In</Text>
+  </Button>
+</Column>
+```
+
+---
+
+## Density
+
+The `density` prop controls the vertical size of the field. Compose Svelted exposes two density tokens via the `Density` constant:
+
+| Token | Value | Field height | Min multiline height | Padding top | Padding bottom |
+|---|---|---|---|---|---|
+| `Density.Default` | `default` | 56 px | 88 px | 20 px | 8 px |
+| `Density.Compact` | `compact` | 44 px | 72 px | 14 px | 6 px |
+
+```svelte
+<script lang="ts">
+  import { TextField, OutlinedTextField, Density, Modifier } from "@danielito1996/compose-svelted";
+
+  let name = "";
+</script>
+
+<!-- Standard density (default) -->
+<TextField
+  value={name}
+  onValueChange={(v) => (name = v)}
+  label="Full name"
+  modifier={Modifier.fillMaxWidth()}
+/>
+
+<!-- Compact — shorter field for dense UIs -->
+<TextField
+  value={name}
+  onValueChange={(v) => (name = v)}
+  label="Full name"
+  density={Density.Compact}
+  modifier={Modifier.fillMaxWidth()}
+/>
+```
+
+<Tip>
+  Use `Density.Compact` in data-dense interfaces like settings panels, filter bars, or inline forms where vertical space is limited.
+</Tip>
+
+---
+
+## TextFieldColors
+
+Both `TextField` and `OutlinedTextField` accept a `colors` prop that lets you override every color in the field. The `TextFieldColors` interface has the following shape:
+
+```ts
+interface TextFieldColors {
+  container: string;          // Background of the filled area
+  label: string;              // Color of the floating label at rest
+  placeholder: string;        // Color of the placeholder text
+  text: string;               // Color of the entered text
+  cursor: string;             // Color of the label when focused and indicator line
+  indicatorFocused: string;   // Bottom-line color when focused (filled only)
+  indicatorUnfocused: string; // Bottom-line color when blurred (filled only)
+  borderFocused?: string;     // Border color when focused (outlined only)
+  borderUnfocused?: string;   // Border color when blurred (outlined only)
+  error?: string;             // Color override for error state
+}
+```
+
+Use `TextFieldDefaults.filledColors()` or `TextFieldDefaults.outlinedColors()` as a starting point, then spread your overrides:
+
+```svelte
+<script lang="ts">
+  import {
+    TextField, TextFieldDefaults, Modifier
+  } from "@danielito1996/compose-svelted";
+
+  let value = "";
+
+  const customColors = {
+    ...TextFieldDefaults.filledColors(),
+    cursor: "var(--md-sys-color-tertiary)",
+    indicatorFocused: "var(--md-sys-color-tertiary)",
+  };
+</script>
+
+<TextField
+  value={value}
+  onValueChange={(v) => (value = v)}
+  label="Custom color field"
+  colors={customColors}
+  modifier={Modifier.fillMaxWidth()}
+/>
+```
+
+<Warning>
+  Always derive custom `TextFieldColors` from `TextFieldDefaults.filledColors()` or `TextFieldDefaults.outlinedColors()` rather than constructing the object from scratch. Leaving properties undefined may cause styling gaps.
+</Warning>
