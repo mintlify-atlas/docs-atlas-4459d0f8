@@ -58,6 +58,10 @@ description: "Document TextField and OutlinedTextField — Material 3 input comp
   Helper or error text rendered below the field. Uses the `error` color when `isError` is `true`, otherwise uses `onSurfaceVariant`.
 </ParamField>
 
+<ParamField path="floatingLabelScale" type="number" default="0.78">
+  The scale factor applied to the label when it floats above the input text (i.e. when the field is focused or has a value). A value of `0.78` shrinks the label to 78% of its resting size, matching the Material 3 spec.
+</ParamField>
+
 <ParamField path="density" type="DensityToken" default="Density.Default">
   Controls the vertical compactness of the field. See the [Density](#density) section below.
 </ParamField>
@@ -158,6 +162,10 @@ All props are identical to `TextField`. The only meaningful internal difference 
 
 <ParamField path="supportingText" type="string | undefined" default="undefined">
   Helper or error text below the field.
+</ParamField>
+
+<ParamField path="floatingLabelScale" type="number" default="0.78">
+  The scale factor applied to the label when it floats above the input text. Matches the Material 3 spec at `0.78`.
 </ParamField>
 
 <ParamField path="density" type="DensityToken" default="Density.Default">

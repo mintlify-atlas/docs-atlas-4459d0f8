@@ -193,9 +193,9 @@ Override any or all tokens by constructing a `ComposeTheme` object and passing i
 ```svelte
 <script lang="ts">
   import { ComposeTheme } from "@danielito1996/compose-svelted";
-  import type { ComposeTheme as Theme } from "@danielito1996/compose-svelted";
 
-  const myLight: Theme = {
+  // TypeScript infers the correct shape from the `light` prop
+  const myLight = {
     colorScheme: {
       primary: "#6750A4",
       onPrimary: "#FFFFFF",

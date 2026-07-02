@@ -1,7 +1,7 @@
 ---
 title: "NavController: Managing the Navigation Back Stack"
 sidebarTitle: "NavController"
-description: "NavController owns the back stack as a Svelte writable store. Push routes with navigate(), pop them with popBackStack(), and pass typed args between screens."
+description: "NavController owns the back stack as a Svelte writable store. Push routes with navigate(), pop with popBackStack(), and pass typed args between screens."
 ---
 
 `NavController` is the single source of truth for navigation state in Compose Svelted. It owns a Svelte `writable` store containing an array of `NavBackStackEntry` objects. Every call to `navigate()` appends a new entry; every call to `popBackStack()` removes the topmost one. Because the stack is a store, `NavHost` — and any other subscriber — stays in sync automatically with no extra wiring.
@@ -62,7 +62,7 @@ Both forms initialise the back stack as `[{ route: startDestination }]`.
 ### `navigate()`
 
 ```ts
-navController.navigate<T>(route: string, args?: T): void
+navController.navigate<T = unknown>(route: string, args?: T): void
 ```
 
 Pushes a new `NavBackStackEntry` onto the back stack. `NavHost` reacts immediately and swaps in the matching screen.

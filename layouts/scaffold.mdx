@@ -1,5 +1,5 @@
 ---
-title: "Scaffold: Full-Screen Screen Layout Structure"
+title: "Scaffold: Full-Screen Layout Structure for Compose Svelted"
 sidebarTitle: "Scaffold"
 description: "Structure any screen with Scaffold's named slots for a top bar, scrollable content area, bottom navigation bar, and a floating action button."
 ---
@@ -27,7 +27,7 @@ Scaffold renders as a full-height flex column. The `topBar` and `bottomBar` slot
 ## Slots
 
 | Slot name               | Description                                                                                 |
-|-------------------------|---------------------------------------------------------------------------------------------|
+|-------------------------|---------------------------------------------------------------------------------------------| 
 | `topBar`                | Top app bar area. Renders at natural height, pinned above the content area.                 |
 | _(default)_             | Main scrollable or static content. Receives `flex: 1` and `display: flex; flex-direction: column` so children can use `fillMaxSize()`. |
 | `bottomBar`             | Bottom navigation bar area. Renders at natural height, pinned below the content area.       |
@@ -37,9 +37,7 @@ Scaffold renders as a full-height flex column. The `topBar` and `bottomBar` slot
 
 ```svelte
 <script>
-  import { Scaffold, Row, Column, Button, Icon, Text } from 'compose-svelted';
-  import { Modifier } from 'compose-svelted/core';
-  import { Alignment } from 'compose-svelted/layouts';
+  import { Scaffold, Row, Column, Button, Icon, Text, Modifier, Alignment } from '@danielito1996/compose-svelted';
 </script>
 
 <Scaffold

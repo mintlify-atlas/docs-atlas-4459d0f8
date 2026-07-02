@@ -1,5 +1,5 @@
 ---
-title: "Column, Row, and Box: Core Layout Containers"
+title: "Column, Row, and Box: Fundamental Layout Containers"
 sidebarTitle: "Column, Row, Box"
 description: "Master Column, Row, Box, and Spacer — the four fundamental layout primitives in Compose Svelted that mirror Jetpack Compose's core containers."
 ---
@@ -24,9 +24,7 @@ Column, Row, and Box are the three foundational layout containers in Compose Sve
 
 ```svelte
 <script>
-  import { Column } from 'compose-svelted';
-  import { Modifier } from 'compose-svelted/core';
-  import { Alignment, Arrangement } from 'compose-svelted/layouts';
+  import { Column, Text, Modifier, Alignment, Arrangement } from '@danielito1996/compose-svelted';
 </script>
 
 <Column
@@ -63,9 +61,7 @@ Column, Row, and Box are the three foundational layout containers in Compose Sve
 
 ```svelte
 <script>
-  import { Row, Text, IconButton } from 'compose-svelted';
-  import { Modifier } from 'compose-svelted/core';
-  import { Alignment, Arrangement } from 'compose-svelted/layouts';
+  import { Row, Text, IconButton, Modifier, Alignment, Arrangement } from '@danielito1996/compose-svelted';
 </script>
 
 <Row
@@ -100,9 +96,7 @@ The default alignment for all children is set by `contentAlignment`. Individual 
 
 ```svelte
 <script>
-  import { Box, Image, Text } from 'compose-svelted';
-  import { Modifier } from 'compose-svelted/core';
-  import { Alignment, ContentScale } from 'compose-svelted/layouts';
+  import { Box, Image, Text, Modifier, Alignment, ContentScale } from '@danielito1996/compose-svelted';
 </script>
 
 <!-- Overlay pattern: image behind, caption pinned to bottom-start -->
@@ -140,9 +134,7 @@ The default alignment for all children is set by `contentAlignment`. Individual 
 
 ```svelte
 <script>
-  import { Row, Text, Spacer, IconButton } from 'compose-svelted';
-  import { Modifier } from 'compose-svelted/core';
-  import { Alignment } from 'compose-svelted/layouts';
+  import { Row, Text, Spacer, IconButton, Modifier, Alignment } from '@danielito1996/compose-svelted';
 </script>
 
 <!-- Title on the left, action button pushed to the far right -->

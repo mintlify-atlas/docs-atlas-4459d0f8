@@ -58,7 +58,11 @@ Compose Svelted ships nine button variants that cover the full Material 3 button
 
 ## TextButton
 
-`TextButton` is a text-only, low-emphasis button with no background fill and no border. It is ideal for dismissive actions (e.g. "Cancel"), secondary links, or anywhere the action is genuinely optional. Its content color defaults to the theme `primary`.
+`TextButton` is a text-only, low-emphasis button with no background fill and no border. It is ideal for dismissive actions (e.g. "Cancel"), secondary links, or anywhere the action is genuinely optional.
+
+<Note>
+  `TextButton`'s source file is currently a stub in the repository. The props listed below reflect the intended public API. When the implementation lands, `onClick` and `modifier` will be the primary props; there are no `color`, `onColor`, `shape`, or `elevation` props — content inherits from the parent surface.
+</Note>
 
 <ParamField path="onClick" type="() => void" default="() => {}">
   Callback invoked on press.
@@ -81,10 +85,6 @@ Compose Svelted ships nine button variants that cover the full Material 3 button
   <Text>View Docs</Text>
 </TextButton>
 ```
-
-<Note>
-  `TextButton`'s source file is currently a stub in the repository. Its public API mirrors `Button` but without `color`, `onColor`, `shape`, or `elevation` props — content inherits from the parent surface.
-</Note>
 
 ---
 
@@ -132,6 +132,10 @@ Compose Svelted ships nine button variants that cover the full Material 3 button
 
 `OutlinedButton` renders a button with a visible border and no background fill, communicating a secondary action that needs clear affordance without the weight of a filled button. It is well-suited for actions like "Learn More", "Edit", or "Share" that are important but not primary.
 
+<Note>
+  `OutlinedButton`'s source file is currently a stub in the repository. The props listed below reflect the intended public API. When the implementation lands, its border color will resolve to the theme `outline` token and its content color to `primary`.
+</Note>
+
 <ParamField path="onClick" type="() => void" default="() => {}">
   Callback invoked on press.
 </ParamField>
@@ -150,15 +154,15 @@ Compose Svelted ships nine button variants that cover the full Material 3 button
 </OutlinedButton>
 ```
 
-<Note>
-  `OutlinedButton`'s source file is currently a stub. Its border color resolves to the theme `outline` token and its content color resolves to `primary`.
-</Note>
-
 ---
 
 ## ButtonWithIcon
 
 `ButtonWithIcon` is a filled button that provides a dedicated `leadingIcon` slot alongside the default content slot. This mirrors the Material 3 "button with icon" pattern — an icon to the left of the label that reinforces the action's meaning.
+
+<Note>
+  `ButtonWithIcon`'s source file is currently a stub in the repository. The props and slot structure below reflect the intended public API modelled after Material 3 and the rest of the Compose Svelted component contract.
+</Note>
 
 <ParamField path="onClick" type="() => void" default="() => {}">
   Callback invoked on press.
@@ -189,6 +193,10 @@ Compose Svelted ships nine button variants that cover the full Material 3 button
 
 `OutlinedButtonWithIcon` combines the outlined style of `OutlinedButton` with a `leadingIcon` slot, following the same icon-leading-label pattern in a lower-emphasis visual style.
 
+<Note>
+  `OutlinedButtonWithIcon`'s source file is currently a stub in the repository. The props and slot structure below reflect the intended public API.
+</Note>
+
 <ParamField path="onClick" type="() => void" default="() => {}">
   Callback invoked on press.
 </ParamField>
@@ -217,6 +225,10 @@ Compose Svelted ships nine button variants that cover the full Material 3 button
 ## IconButton
 
 `IconButton` is a compact, icon-only tap target. It renders a square/circular interactive area with no label, making it ideal for toolbars, action bars, and anywhere space is constrained. Place an `Icon` or any 24 dp visual inside its default slot.
+
+<Note>
+  `IconButton`'s source file is currently a stub in the repository. The props listed below reflect the intended public API.
+</Note>
 
 <ParamField path="onClick" type="() => void" default="() => {}">
   Callback invoked on press.
@@ -253,6 +265,10 @@ Compose Svelted ships nine button variants that cover the full Material 3 button
 ## OutlinedIconButton
 
 `OutlinedIconButton` wraps the same icon-only interaction as `IconButton` but adds a visible border, providing additional affordance in surfaces where the background offers little contrast.
+
+<Note>
+  `OutlinedIconButton`'s source file is currently a stub in the repository. The props listed below reflect the intended public API.
+</Note>
 
 <ParamField path="onClick" type="() => void" default="() => {}">
   Callback invoked on press.

@@ -1,5 +1,5 @@
 ---
-title: "AnimatedContent: Animate Between State Changes"
+title: "AnimatedContent: Animate Between Content States Smoothly"
 sidebarTitle: "AnimatedContent"
 description: "Smoothly transition between different content states using CSS-based enter and exit animations driven by a reactive target state key."
 ---
@@ -16,7 +16,7 @@ description: "Smoothly transition between different content states using CSS-bas
   A value that uniquely identifies the currently active content. `AnimatedContent` compares this to its internally tracked `currentKey` on every reactive update. When they differ, the exit animation plays, the key is swapped after `transition.duration` milliseconds, and the enter animation plays on the new content.
 </ParamField>
 
-<ParamField path="transition" type="ContentTransition" default="fade(300)">
+<ParamField path="transition" type="ContentTransition" default="fade()">
   A `ContentTransition` object describing the CSS styles for the entered state, the exiting state, and the duration of the transition. Defaults to a 300 ms opacity fade. Use any of the built-in factory functions or supply a custom object.
 </ParamField>
 
